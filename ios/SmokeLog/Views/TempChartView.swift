@@ -68,9 +68,11 @@ struct TempChartView: View {
                 }
                 ForEach(milestones, id: \.label) { m in
                     RuleMark(x: .value(m.label, m.hours))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.gray)
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                        .annotation(position: .top, alignment: .leading) { Text(m.label).font(.caption2) }
+                        .annotation(position: .trailing, alignment: .top, spacing: 3) {
+                            Text(m.label).font(.caption2.weight(.semibold)).foregroundStyle(.primary)
+                        }
                 }
                 if let sel = selectedHours, let r = nearest(sel) {
                     RuleMark(x: .value("Selected", hours(r.time)))
@@ -84,7 +86,7 @@ struct TempChartView: View {
             .chartXAxis {
                 AxisMarks { v in
                     AxisGridLine()
-                    AxisValueLabel { if let h = v.as(Double.self) { Text(h < 1.5 ? "\(Int(h * 60))m" : "\(Int(h))h") } }
+                    AxisValueLabel { if let h = v.as(Double.self) { Text(Self.axisLabel(hours: h, span: span)) } }
                 }
             }
             .chartYAxis { AxisMarks(position: .leading) { v in AxisGridLine(); AxisValueLabel { if let t = v.as(Double.self) { Text("\(Int(t))°") } } } }
@@ -108,6 +110,16 @@ struct TempChartView: View {
     private func legendColors(_ present: Set<String>, _ hasTarget: Bool) -> [Color] {
         let all: [String: Color] = ["Pit": pit, "Probe": probe, "Probe 2": probe2, "Pit set": .secondary]
         return ["Pit", "Probe", "Probe 2", "Pit set"].filter(present.contains).map { all[$0]! } + (hasTarget ? [probe.opacity(0.8)] : [])
+    }
+
+    /// Total hours shown, used to pick axis label units.
+    private var span: Double { readings.last.map { hours($0.time) } ?? 0 }
+
+    /// Seconds for very short spans (e.g. the first minutes of the demo), minutes under ~2 h, then hours.
+    static func axisLabel(hours h: Double, span: Double) -> String {
+        if span < 3.0 / 60 { return "\(Int((h * 3600).rounded()))s" }
+        if span < 2 { return "\(Int((h * 60).rounded()))m" }
+        return h.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(h))h" : String(format: "%.1fh", h)
     }
 
     private func nearest(_ h: Double) -> TempReading? {

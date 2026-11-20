@@ -126,11 +126,10 @@ struct CookEditView: View {
                              prompt: "“14 lb prime packer, dry brined overnight, SPG 1 h before. On at 6am at 250, fat side down, water pan. Wrapped in butcher paper with tallow at 165 around 1pm…”")
                 if settings.usesClaudeApp {
                     if let ai {
-                        ShareLink(item: ai.parseRequestForClaudeApp(notes, current: draft)) {
-                            Label("Ask Claude", systemImage: "sparkles")
-                        }
-                        .disabled(notes.isEmpty)
-                        .simultaneousGesture(TapGesture().onEnded { sentToClaude = true })
+                        ClaudeShareButton(title: "Ask Claude",
+                                          prompt: { ai.parseRequestForClaudeApp(notes, current: draft) },
+                                          onShare: { sentToClaude = true })
+                            .disabled(notes.isEmpty)
                     }
                     if sentToClaude {
                         Text("In the share sheet pick Claude and send. Then copy Claude's reply and paste it here.")

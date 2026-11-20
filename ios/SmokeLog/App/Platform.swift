@@ -62,3 +62,38 @@ extension View {
         #endif
     }
 }
+
+#if os(iOS)
+/// The system share sheet, presented explicitly (ShareLink can't also run code on tap inside a List).
+struct ActivityView: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+}
+#endif
+
+/// Opens the share sheet with a prompt for the Claude app, and reports that it was used.
+struct ClaudeShareButton: View {
+    let title: String
+    let prompt: () -> String
+    var onShare: () -> Void = {}
+    @State private var item: SharedText?
+
+    private struct SharedText: Identifiable { let id = UUID(); let text: String }
+
+    var body: some View {
+        Button {
+            onShare()
+            item = SharedText(text: prompt())
+        } label: { Label(title, systemImage: "sparkles") }
+        .sheet(item: $item) { shared in
+            #if os(iOS)
+            ActivityView(items: [shared.text]).presentationDetents([.medium, .large])
+            #else
+            ShareLink(item: shared.text)
+            #endif
+        }
+    }
+}

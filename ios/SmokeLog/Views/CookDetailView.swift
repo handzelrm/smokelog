@@ -230,10 +230,9 @@ struct AIDebriefSection: View {
                 TextField("Ask about this cook (optional)", text: $question, prompt: Text("e.g. Why did it stall so long?"), axis: .vertical)
                 let past = store.similarCooks(meat: cook.meat, excluding: cook.id)
                 if settings.usesClaudeApp {
-                    ShareLink(item: ai.analyzeRequestForClaudeApp(cook, past: past, question: question)) {
-                        Label(question.isEmpty ? "Debrief in Claude" : "Ask Claude", systemImage: "sparkles")
-                    }
-                    .simultaneousGesture(TapGesture().onEnded { sentToClaude = true })
+                    ClaudeShareButton(title: question.isEmpty ? "Debrief in Claude" : "Ask Claude",
+                                      prompt: { ai.analyzeRequestForClaudeApp(cook, past: past, question: question) },
+                                      onShare: { sentToClaude = true })
                     if sentToClaude {
                         Text("Pick Claude in the share sheet and send. Copy the reply and paste it here to keep it with this cook.")
                             .font(.footnote).foregroundStyle(.secondary)
