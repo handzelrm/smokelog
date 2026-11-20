@@ -1,10 +1,12 @@
 # SmokeLog
 
-An Android app for logging smoked-meat cooks. It records how each cook was prepared and run, plots live Traeger temperatures, lets you share a cook, and uses Claude to fill the log from notes and to review your cooks.
+An app for logging smoked-meat cooks, for Android and iPhone (see [`ios/`](ios/README.md) for the iPhone version). It records how each cook was prepared and run, plots live Traeger temperatures, lets you share a cook, and uses Claude to fill the log from notes and to review your cooks.
 
 ## Install on your phone
 
-Requires Android 8.0 or newer.
+**iPhone:** build and install with Xcode, see [ios/README.md](ios/README.md).
+
+**Android** (8.0 or newer):
 
 1. On your Android phone, open this repo's [**Releases**](../../releases/latest) page and download `SmokeLog.apk`.
 2. Open the downloaded file. If Android asks, allow your browser (or Files app) to **install unknown apps**, then tap **Install**.

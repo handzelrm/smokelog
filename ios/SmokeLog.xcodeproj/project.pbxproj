@@ -1,0 +1,300 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		261638A9C6CCEE89318B1500 /* CookShare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A5DABEAAF857D3EA4F7A1 /* CookShare.swift */; };
+		3FA4412CE0F0514E8F0E60AC /* TempChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */; };
+		525F39DEECD86524F3CA1196 /* CookEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B01224DDA851B722019E086 /* CookEditView.swift */; };
+		657ABD437C23B4A9F96BF766 /* CookListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0059112890755B52BEE7323 /* CookListView.swift */; };
+		718409C029CD0D83F04B44E5 /* Fmt.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEAFAD7A017B4AC5E760CE3 /* Fmt.swift */; };
+		7AEC5508C1740D6E6950C8CA /* MeatCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A39E9D41070F89D3D7AD41 /* MeatCatalog.swift */; };
+		867713A3F53493C6455C2B72 /* TraegerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED207492480FF1386AEB728 /* TraegerClient.swift */; };
+		A2D13344EBE17BEA03F115CB /* AIAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4DB39E3CF585EC00020FD4 /* AIAssistant.swift */; };
+		A8C07F59195136652F37B84D /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */; };
+		B7470DC2EA4CE74C937E5914 /* SmokeLogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5ADD34FC6407FFD0F5A8A5 /* SmokeLogApp.swift */; };
+		BB55365130355FA7E350E956 /* CookStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9429436C87C86BF44D3A69 /* CookStore.swift */; };
+		C0C9668F7CE4B8D8B1216E4B /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABD75E877824FBFE075AE8F /* Platform.swift */; };
+		C11F74B36D2841FCF128D590 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD826EDCB8D77059FBFB5313 /* SettingsView.swift */; };
+		CF30CE74433F8A4FF3CE9D4F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 69C36335D9405CA3F4DF9A5A /* Assets.xcassets */; };
+		D0505A80D04EE8818B415409 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC543ABDE36C8C899169FD4 /* Models.swift */; };
+		D6A7326F1BE2DDBACDC51A66 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90917037FE2EF22CAE8C205 /* Components.swift */; };
+		D94848BC11E086BC8CC2F467 /* CookDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4458A6BF9DDA7B5EF29B971 /* CookDetailView.swift */; };
+		F99220A72805A12090274126 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4025E38C84684FF7521CAB53 /* AppSettings.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1ABD75E877824FBFE075AE8F /* Platform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform.swift; sourceTree = "<group>"; };
+		1ED207492480FF1386AEB728 /* TraegerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraegerClient.swift; sourceTree = "<group>"; };
+		3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempChartView.swift; sourceTree = "<group>"; };
+		3B01224DDA851B722019E086 /* CookEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookEditView.swift; sourceTree = "<group>"; };
+		3B4DB39E3CF585EC00020FD4 /* AIAssistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistant.swift; sourceTree = "<group>"; };
+		4025E38C84684FF7521CAB53 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		4F9429436C87C86BF44D3A69 /* CookStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookStore.swift; sourceTree = "<group>"; };
+		69C36335D9405CA3F4DF9A5A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6DC543ABDE36C8C899169FD4 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		731A5DABEAAF857D3EA4F7A1 /* CookShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookShare.swift; sourceTree = "<group>"; };
+		7556E4251C32D29410029381 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		7A5ADD34FC6407FFD0F5A8A5 /* SmokeLogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeLogApp.swift; sourceTree = "<group>"; };
+		AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recorder.swift; sourceTree = "<group>"; };
+		C90917037FE2EF22CAE8C205 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		D0059112890755B52BEE7323 /* CookListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookListView.swift; sourceTree = "<group>"; };
+		D2ACA8740A7BFFD4E9889841 /* SmokeLog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SmokeLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD826EDCB8D77059FBFB5313 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		E4458A6BF9DDA7B5EF29B971 /* CookDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookDetailView.swift; sourceTree = "<group>"; };
+		F4A39E9D41070F89D3D7AD41 /* MeatCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeatCatalog.swift; sourceTree = "<group>"; };
+		FAEAFAD7A017B4AC5E760CE3 /* Fmt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fmt.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		184FEED79CCCF2EB9552F627 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				69C36335D9405CA3F4DF9A5A /* Assets.xcassets */,
+				7556E4251C32D29410029381 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		214A2872DB82784215934108 = {
+			isa = PBXGroup;
+			children = (
+				F000781A7491B1B25700988C /* SmokeLog */,
+				8E7E9751C2C55C491C336E89 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		505C026E81ACB63ECD957FE4 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				FAEAFAD7A017B4AC5E760CE3 /* Fmt.swift */,
+				F4A39E9D41070F89D3D7AD41 /* MeatCatalog.swift */,
+				6DC543ABDE36C8C899169FD4 /* Models.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		8E7E9751C2C55C491C336E89 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2ACA8740A7BFFD4E9889841 /* SmokeLog.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C642843B92835EC47F1D57AA /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C90917037FE2EF22CAE8C205 /* Components.swift */,
+				E4458A6BF9DDA7B5EF29B971 /* CookDetailView.swift */,
+				3B01224DDA851B722019E086 /* CookEditView.swift */,
+				D0059112890755B52BEE7323 /* CookListView.swift */,
+				DD826EDCB8D77059FBFB5313 /* SettingsView.swift */,
+				3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		CA314421E37FA94D2114F3F1 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3B4DB39E3CF585EC00020FD4 /* AIAssistant.swift */,
+				4025E38C84684FF7521CAB53 /* AppSettings.swift */,
+				731A5DABEAAF857D3EA4F7A1 /* CookShare.swift */,
+				4F9429436C87C86BF44D3A69 /* CookStore.swift */,
+				AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */,
+				1ED207492480FF1386AEB728 /* TraegerClient.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D4F928DA24DFF24C15E1D9A8 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				1ABD75E877824FBFE075AE8F /* Platform.swift */,
+				7A5ADD34FC6407FFD0F5A8A5 /* SmokeLogApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		F000781A7491B1B25700988C /* SmokeLog */ = {
+			isa = PBXGroup;
+			children = (
+				D4F928DA24DFF24C15E1D9A8 /* App */,
+				505C026E81ACB63ECD957FE4 /* Model */,
+				184FEED79CCCF2EB9552F627 /* Resources */,
+				CA314421E37FA94D2114F3F1 /* Services */,
+				C642843B92835EC47F1D57AA /* Views */,
+			);
+			path = SmokeLog;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		472DE90181388EAA770CC1B3 /* SmokeLog */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC9569BA735BD4E9B0CD171A /* Build configuration list for PBXNativeTarget "SmokeLog" */;
+			buildPhases = (
+				09F675967B8635061E9D52D8 /* Sources */,
+				7F28AD80AC681EFAFB7E7217 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SmokeLog;
+			packageProductDependencies = (
+			);
+			productName = SmokeLog;
+			productReference = D2ACA8740A7BFFD4E9889841 /* SmokeLog.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		217D055513B03CA3B5D9D6B9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					472DE90181388EAA770CC1B3 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = EF79D9D7015055F49032F080 /* Build configuration list for PBXProject "SmokeLog" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 214A2872DB82784215934108;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8E7E9751C2C55C491C336E89 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				472DE90181388EAA770CC1B3 /* SmokeLog */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7F28AD80AC681EFAFB7E7217 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF30CE74433F8A4FF3CE9D4F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		09F675967B8635061E9D52D8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A2D13344EBE17BEA03F115CB /* AIAssistant.swift in Sources */,
+				F99220A72805A12090274126 /* AppSettings.swift in Sources */,
+				D6A7326F1BE2DDBACDC51A66 /* Components.swift in Sources */,
+				D94848BC11E086BC8CC2F467 /* CookDetailView.swift in Sources */,
+				525F39DEECD86524F3CA1196 /* CookEditView.swift in Sources */,
+				657ABD437C23B4A9F96BF766 /* CookListView.swift in Sources */,
+				261638A9C6CCEE89318B1500 /* CookShare.swift in Sources */,
+				BB55365130355FA7E350E956 /* CookStore.swift in Sources */,
+				718409C029CD0D83F04B44E5 /* Fmt.swift in Sources */,
+				7AEC5508C1740D6E6950C8CA /* MeatCatalog.swift in Sources */,
+				D0505A80D04EE8818B415409 /* Models.swift in Sources */,
+				C0C9668F7CE4B8D8B1216E4B /* Platform.swift in Sources */,
+				A8C07F59195136652F37B84D /* Recorder.swift in Sources */,
+				C11F74B36D2841FCF128D590 /* SettingsView.swift in Sources */,
+				B7470DC2EA4CE74C937E5914 /* SmokeLogApp.swift in Sources */,
+				3FA4412CE0F0514E8F0E60AC /* TempChartView.swift in Sources */,
+				867713A3F53493C6455C2B72 /* TraegerClient.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		02AA9D383AA92CEAA2153FA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		5901C8C1100A1FD32AFFEDCB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		ADEDA2D35C422008468A5467 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = SmokeLog/Resources/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.smokelog.ios;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		C2E1E99DC857F695263D7C0A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = SmokeLog/Resources/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.smokelog.ios;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CC9569BA735BD4E9B0CD171A /* Build configuration list for PBXNativeTarget "SmokeLog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2E1E99DC857F695263D7C0A /* Debug */,
+				ADEDA2D35C422008468A5467 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EF79D9D7015055F49032F080 /* Build configuration list for PBXProject "SmokeLog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5901C8C1100A1FD32AFFEDCB /* Debug */,
+				02AA9D383AA92CEAA2153FA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 217D055513B03CA3B5D9D6B9 /* Project object */;
+}
