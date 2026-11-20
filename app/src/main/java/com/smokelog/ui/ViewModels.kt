@@ -1,0 +1,265 @@
+package com.smokelog.ui
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.smokelog.SmokeLogApp
+import com.smokelog.ai.CookPatch
+import com.smokelog.data.Cook
+import com.smokelog.data.CookEvent
+import com.smokelog.data.EventType
+import com.smokelog.data.Settings
+import com.smokelog.data.TempReading
+import com.smokelog.data.WrapMethod
+import com.smokelog.traeger.CookMonitorService
+import com.smokelog.traeger.Grill
+import com.smokelog.traeger.TraegerClient
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
+
+private val app get() = SmokeLogApp.instance
+private val dao get() = app.db.cookDao()
+
+class CookListViewModel : ViewModel() {
+    val cooks = dao.observeCooks().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val monitoring = app.monitoringCookId
+
+    fun newCook(onCreated: (Long) -> Unit) = viewModelScope.launch {
+        onCreated(dao.insertCook(Cook()))
+    }
+}
+
+/** Shared state for an AI request in flight. */
+data class AiState(
+    val busy: Boolean = false, val error: String? = null, val result: String? = null,
+    /** A prompt was handed to the Claude app; waiting for the user to paste the reply back. */
+    val awaitingPaste: Boolean = false,
+)
+
+class CookEditViewModel(private val cookId: Long) : ViewModel() {
+    // Compose state (not StateFlow) so text fields update synchronously while typing.
+    var draft by mutableStateOf<Cook?>(null)
+        private set
+    private val _ai = MutableStateFlow(AiState())
+    val ai: StateFlow<AiState> = _ai.asStateFlow()
+    val aiEnabled get() = app.settings.state.value.hasAi
+
+    /** Next-cook notes from earlier cooks of the selected meat. */
+    var pastNotes by mutableStateOf<List<Cook>>(emptyList())
+        private set
+
+    fun loadPastNotes(meat: String) = viewModelScope.launch {
+        pastNotes = if (meat.isBlank()) emptyList() else dao.nextCookNotesFor(meat.trim(), cookId)
+    }
+
+    private var pendingEvents: List<CookEvent> = emptyList()
+    private var pendingReadings: List<TempReading> = emptyList()
+
+    init { viewModelScope.launch { draft = dao.getCook(cookId) } }
+
+    fun update(f: (Cook) -> Cook) { draft = draft?.let(f) }
+
+    fun save(onDone: () -> Unit) = viewModelScope.launch {
+        draft?.let { dao.updateCook(it) }
+        if (pendingEvents.isNotEmpty()) dao.insertEvents(pendingEvents)
+        if (pendingReadings.isNotEmpty()) dao.insertReadings(pendingReadings)
+        pendingEvents = emptyList(); pendingReadings = emptyList()
+        onDone()
+    }
+
+    val usesClaudeApp get() = app.settings.state.value.usesClaudeApp
+
+    /** Sends notes to Claude (API), merges the extracted fields into the draft (user still reviews and saves). */
+    fun fillFromNotes(notes: String) = viewModelScope.launch {
+        val current = draft ?: return@launch
+        _ai.value = AiState(busy = true)
+        try {
+            applyPatch(app.ai.parseNotes(notes, current), current)
+        } catch (e: Exception) {
+            _ai.value = AiState(error = e.message ?: "AI request failed")
+        }
+    }
+
+    /** Opens the Claude app with the notes; the reply comes back via [applyPastedReply]. */
+    fun openInClaudeApp(context: android.content.Context, notes: String) {
+        val current = draft ?: return
+        _ai.value = if (com.smokelog.ai.ClaudeApp.open(context, app.ai.parseRequestForClaudeApp(notes, current)))
+            AiState(awaitingPaste = true)
+        else AiState(error = "The Claude app isn't installed. Install it from the Play Store, or use an API key in Settings.")
+    }
+
+    fun applyPastedReply(text: String?) {
+        val current = draft ?: return
+        if (text.isNullOrBlank()) { _ai.value = _ai.value.copy(error = "Clipboard is empty – copy Claude's reply first"); return }
+        try {
+            applyPatch(app.ai.parseReply(text), current)
+        } catch (e: Exception) {
+            _ai.value = _ai.value.copy(error = e.message)
+        }
+    }
+
+    private fun applyPatch(patch: CookPatch, current: Cook) {
+        val (cook, events, readings) = app.ai.apply(patch, current)
+        draft = cook
+        pendingEvents = pendingEvents + events
+        pendingReadings = pendingReadings + readings
+        val extras = listOfNotNull(
+            events.size.takeIf { it > 0 }?.let { "$it timeline events" },
+            readings.size.takeIf { it > 0 }?.let { "$it temp readings" },
+        ).joinToString(" and ")
+        _ai.value = AiState(result = (patch.summary ?: "Fields updated.") +
+            (if (extras.isNotEmpty()) " Will also add $extras." else "") + " Review, then Save.")
+    }
+
+    fun clearAi() { _ai.value = AiState() }
+}
+
+class CookDetailViewModel(val cookId: Long) : ViewModel() {
+    val cook = dao.observeCook(cookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val readings = dao.observeReadings(cookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val events = dao.observeEvents(cookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val live = CookMonitorService.live
+    val monitoringId = app.monitoringCookId
+    val settings: StateFlow<Settings.Snapshot> = app.settings.state
+
+    private val _ai = MutableStateFlow(AiState())
+    val ai: StateFlow<AiState> = _ai.asStateFlow()
+
+    var pastNotes by mutableStateOf<List<Cook>>(emptyList())
+        private set
+
+    fun loadPastNotes(meat: String) = viewModelScope.launch {
+        pastNotes = if (meat.isBlank()) emptyList() else dao.nextCookNotesFor(meat.trim(), cookId)
+    }
+
+    private val _grills = MutableStateFlow<GrillsState>(GrillsState.Idle)
+    val grills: StateFlow<GrillsState> = _grills.asStateFlow()
+
+    sealed interface GrillsState {
+        data object Idle : GrillsState
+        data object Loading : GrillsState
+        data class Loaded(val grills: List<Grill>, val error: String? = null) : GrillsState
+    }
+
+    private val demoGrill = Grill(TraegerClient.DEMO_THING, "Demo grill (simulated)")
+
+    fun loadGrills() = viewModelScope.launch {
+        _grills.value = GrillsState.Loading
+        _grills.value = if (!app.settings.state.value.hasTraeger) {
+            GrillsState.Loaded(listOf(demoGrill), "Add your Traeger login in Settings to see your grills.")
+        } else try {
+            GrillsState.Loaded(app.traeger.listGrills() + demoGrill)
+        } catch (e: Exception) {
+            GrillsState.Loaded(listOf(demoGrill), e.message)
+        }
+    }
+
+    fun dismissGrills() { _grills.value = GrillsState.Idle }
+
+    fun startMonitoring(grill: Grill) = viewModelScope.launch {
+        val c = cook.value ?: return@launch
+        dao.updateCook(c.copy(traegerThing = grill.thingName, startTime = c.startTime ?: System.currentTimeMillis()))
+        CookMonitorService.start(app, cookId, grill.thingName)
+        _grills.value = GrillsState.Idle
+    }
+
+    fun stopMonitoring() = CookMonitorService.stop(app)
+
+    private suspend fun latestProbe(): Int? =
+        (live.value.takeIf { it.cookId == cookId }?.status?.probeF ?: dao.latestReading(cookId)?.probeF)?.roundToInt()
+
+    /** One-tap milestones: stamp the time and grab the current probe temp when we have one. */
+    fun markNow(type: EventType) = viewModelScope.launch {
+        val c = cook.value ?: return@launch
+        val now = System.currentTimeMillis()
+        val probe = latestProbe()
+        val updated = when (type) {
+            EventType.WRAPPED -> c.copy(wrapTime = now, wrapInternalF = probe ?: c.wrapInternalF,
+                wrapMethod = c.wrapMethod?.takeIf { it != WrapMethod.NONE } ?: WrapMethod.BUTCHER_PAPER)
+            EventType.PULLED -> c.copy(offTime = now, offInternalF = probe ?: c.offInternalF)
+            EventType.REST_END -> c.copy(restEndTime = now)
+            else -> c
+        }
+        if (updated != c) dao.updateCook(updated)
+        if (type == EventType.PULLED && monitoringId.value == cookId) stopMonitoring()
+        dao.insertEvent(CookEvent(cookId = cookId, time = now, type = type, note = probe?.let { "Probe ${it}°F" } ?: ""))
+    }
+
+    fun startCookNow() = viewModelScope.launch {
+        val c = cook.value ?: return@launch
+        dao.updateCook(c.copy(startTime = System.currentTimeMillis()))
+    }
+
+    fun addEvent(type: EventType, note: String, time: Long = System.currentTimeMillis()) = viewModelScope.launch {
+        dao.insertEvent(CookEvent(cookId = cookId, time = time, type = type, note = note))
+    }
+
+    fun deleteEvent(e: CookEvent) = viewModelScope.launch { dao.deleteEvent(e) }
+
+    fun addReading(grillF: Double?, probeF: Double?, time: Long = System.currentTimeMillis()) = viewModelScope.launch {
+        if (grillF == null && probeF == null) return@launch
+        dao.insertReading(TempReading(cookId = cookId, time = time, grillF = grillF, probeF = probeF))
+    }
+
+    fun delete(onDone: () -> Unit) = viewModelScope.launch {
+        if (monitoringId.value == cookId) stopMonitoring()
+        cook.value?.let { dao.deleteCook(it) }
+        onDone()
+    }
+
+    fun analyze(question: String?) = viewModelScope.launch {
+        val c = cook.value ?: return@launch
+        _ai.value = AiState(busy = true)
+        try {
+            val past = if (c.meat.isBlank()) emptyList() else dao.similarCooks("%${c.meat.trim()}%", c.id)
+            val text = app.ai.analyze(c, dao.getReadings(cookId), dao.getEvents(cookId), past, question)
+            if (question.isNullOrBlank()) dao.updateCook(c.copy(aiAnalysis = text))
+            _ai.value = AiState(result = text)
+        } catch (e: Exception) {
+            _ai.value = AiState(error = e.message ?: "AI request failed")
+        }
+    }
+
+    /** Opens the Claude app with the cook data; the reply comes back via [savePastedAnalysis]. */
+    fun openInClaudeApp(context: android.content.Context, question: String?) = viewModelScope.launch {
+        val c = cook.value ?: return@launch
+        val past = if (c.meat.isBlank()) emptyList() else dao.similarCooks("%${c.meat.trim()}%", c.id)
+        val prompt = app.ai.analyzeRequestForClaudeApp(c, dao.getReadings(cookId), dao.getEvents(cookId), past, question)
+        _ai.value = if (com.smokelog.ai.ClaudeApp.open(context, prompt)) AiState(awaitingPaste = true)
+        else AiState(error = "The Claude app isn't installed. Install it from the Play Store, or use an API key in Settings.")
+    }
+
+    fun savePastedAnalysis(text: String?) = viewModelScope.launch {
+        val c = cook.value ?: return@launch
+        if (text.isNullOrBlank()) { _ai.value = _ai.value.copy(error = "Clipboard is empty – copy Claude's reply first"); return@launch }
+        dao.updateCook(c.copy(aiAnalysis = text.trim()))
+        _ai.value = AiState(result = text.trim())
+    }
+
+    fun clearAi() { _ai.value = AiState() }
+}
+
+class SettingsViewModel : ViewModel() {
+    val state = app.settings.state
+    private val _test = MutableStateFlow<String?>(null)
+    val test: StateFlow<String?> = _test.asStateFlow()
+
+    fun save(s: Settings.Snapshot) = app.settings.update(s)
+
+    fun testTraeger(s: Settings.Snapshot) = viewModelScope.launch {
+        app.settings.update(s)
+        _test.value = "Signing in…"
+        _test.value = try {
+            val grills = app.traeger.listGrills()
+            if (grills.isEmpty()) "Signed in, but no grills are on this account."
+            else "Connected: " + grills.joinToString { it.name }
+        } catch (e: Exception) { e.message ?: "Failed" }
+    }
+}
