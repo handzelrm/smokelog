@@ -2,6 +2,15 @@
 
 An app for logging smoked-meat cooks, for Android and iPhone (see [`ios/`](ios/README.md) for the iPhone version). It records how each cook was prepared and run, plots live Traeger temperatures, lets you share a cook, and uses Claude to fill the log from notes and to review your cooks.
 
+## Screenshots
+
+| | Cook page with live temperature chart | Setup & prep / meat picker | New cook with notes from last time |
+|---|---|---|---|
+| **iPhone** | <img src="docs/screenshots/ios-cook.png" width="240" alt="iPhone cook page: milestones and a 12-hour brisket temperature chart with stall, wrap and off markers"> | <img src="docs/screenshots/ios-setup.png" width="240" alt="iPhone setup and prep details: smoker, placement, fat cap, water pan, trim, seasoning, brine, injection"> | <img src="docs/screenshots/ios-new-cook.png" width="240" alt="iPhone new cook form showing notes from the last brisket cook"> |
+| **Android** | <img src="docs/screenshots/android-cook.png" width="240" alt="Android cook page: temperature chart with touch tooltip showing pit and probe values"> | <img src="docs/screenshots/android-meat-picker.png" width="240" alt="Android meat dropdown grouped by category"> | <img src="docs/screenshots/android-new-cook.png" width="240" alt="Android new cook form showing notes from the last brisket cook"> |
+
+*Sample data: a 14.5 lb brisket smoked at 250°F, with a stall around 155–165°F, wrapped in butcher paper, pulled at 203°F and rested in a cooler.*
+
 ## Install on your phone
 
 **iPhone:** build and install with Xcode, see [ios/README.md](ios/README.md).

@@ -113,7 +113,7 @@ struct CookDetailView: View {
                     if c.startTime == nil { chip("Meat on now") { store.update(c.id) { $0.startTime = Date() } } }
                     if c.wrapTime == nil && c.wrapMethod != WrapMethod.none { chip("Wrapped now") { markNow(.wrapped) } }
                     if c.offTime == nil { chip("Taken off now") { markNow(.pulled) } }
-                    if c.offTime != nil && c.restEndTime == nil { chip("Rest done now") { markNow(.restEnd) } }
+                    if c.offTime != nil && c.restEndTime == nil && c.restMinutes == nil { chip("Rest done now") { markNow(.restEnd) } }
                     chip("Spritzed") { markNow(.spritz) }
                     chip("Add event…") { showEvent = true }
                     chip("Add reading…") { showReading = true }

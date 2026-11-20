@@ -143,7 +143,7 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
                     if (c.startTime == null) AssistChip(onClick = vm::startCookNow, label = { Text("Meat on now") })
                     if (c.wrapTime == null && c.wrapMethod != WrapMethod.NONE) AssistChip(onClick = { vm.markNow(EventType.WRAPPED) }, label = { Text("Wrapped now") })
                     if (c.offTime == null) AssistChip(onClick = { vm.markNow(EventType.PULLED) }, label = { Text("Taken off now") })
-                    if (c.offTime != null && c.restEndTime == null) AssistChip(onClick = { vm.markNow(EventType.REST_END) }, label = { Text("Rest done now") })
+                    if (c.offTime != null && c.restEndTime == null && c.restMinutes == null) AssistChip(onClick = { vm.markNow(EventType.REST_END) }, label = { Text("Rest done now") })
                     AssistChip(onClick = { vm.markNow(EventType.SPRITZ) }, label = { Text("Spritzed") })
                     AssistChip(onClick = { eventDialog = true }, label = { Text("Add event…") })
                     AssistChip(onClick = { readingDialog = true }, label = { Text("Add reading…") })

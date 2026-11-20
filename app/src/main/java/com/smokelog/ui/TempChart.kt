@@ -2,7 +2,7 @@ package com.smokelog.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -108,7 +108,8 @@ fun TempChart(cook: Cook, readings: List<TempReading>, modifier: Modifier = Modi
                     detectTapGestures(onPress = { hoverX = it.x; tryAwaitRelease(); })
                 }
                 .pointerInput(readings) {
-                    detectDragGestures(onDragEnd = { hoverX = null }, onDragCancel = { hoverX = null }) { change, _ -> hoverX = change.position.x }
+                    // Horizontal only, so vertical swipes over the chart still scroll the page.
+                    detectHorizontalDragGestures(onDragEnd = { hoverX = null }, onDragCancel = { hoverX = null }) { change, _ -> hoverX = change.position.x }
                 }
         ) {
             val left = 40.dp.toPx(); val bottom = 22.dp.toPx(); val top = 8.dp.toPx(); val right = 8.dp.toPx()

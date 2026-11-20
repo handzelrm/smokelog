@@ -81,8 +81,9 @@ enum CookShare {
         var events: [EventDTO]
     }
 
+    // ids are Android database keys: written for compatibility, optional when reading.
     struct CookDTO: Codable {
-        var id: Int64 = 0
+        var id: Int64? = 0
         var title, meat, cut: String?
         var weightLb: Double?
         var createdAt: Int64?
@@ -115,14 +116,14 @@ enum CookShare {
     }
 
     struct ReadingDTO: Codable {
-        var id: Int64 = 0, cookId: Int64 = 0
+        var id: Int64? = 0, cookId: Int64? = 0
         var time: Int64
         var grillF, grillSetF, probeF, probe2F, probeTargetF: Double?
         var source: String?
     }
 
     struct EventDTO: Codable {
-        var id: Int64 = 0, cookId: Int64 = 0
+        var id: Int64? = 0, cookId: Int64? = 0
         var time: Int64
         var type: String
         var note: String?
