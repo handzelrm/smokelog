@@ -23,6 +23,7 @@ struct CookDetailView: View {
     @State private var showEvent = false
     @State private var showReading = false
     @State private var confirmDelete = false
+    @State private var shareItems: [Any]?
 
     var body: some View {
         if let c = store.cook(cookId) {
@@ -32,6 +33,7 @@ struct CookDetailView: View {
                 grillSection(c)
                 milestoneSection(c)
                 Section("Temperatures") { TempChartView(cook: c) }
+                PhotosSection(cook: c)
                 setupSection(c)
                 if !c.events.isEmpty { timelineSection(c) }
                 AIDebriefSection(cook: c)
@@ -54,13 +56,16 @@ struct CookDetailView: View {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button("Edit") { showEdit = true }
                     Menu {
-                        ShareLink("Share summary (text)", item: CookShare.summary(c))
+                        Button("Share summary (text + photos)") {
+                            shareItems = [CookShare.summary(c)] + c.photoList.map { PhotoStore.shared.url($0.fileName) }
+                        }
                         ShareLink("Share full cook file", item: CookFile(cook: c), preview: SharePreview("\(c.displayTitle).smokelog.json"))
                         Divider()
                         Button("Delete cook", role: .destructive) { confirmDelete = true }
                     } label: { Label("More", systemImage: "square.and.arrow.up") }
                 }
             }
+            .modifier(ShareSheetModifier(items: $shareItems))
             .sheet(isPresented: $showEdit) { CookEditView(cookId: c.id) }
             .sheet(isPresented: $showGrills) { GrillPickerView(cookId: c.id) }
             .sheet(isPresented: $showEvent) { EventSheet { type, note in addEvent(type, note) } }

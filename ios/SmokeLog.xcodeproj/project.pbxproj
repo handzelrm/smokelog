@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0791C6CBB94F335BDA0E4DB5 /* PhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C73A97E65F2A4BFA530FFE /* PhotoStore.swift */; };
 		261638A9C6CCEE89318B1500 /* CookShare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A5DABEAAF857D3EA4F7A1 /* CookShare.swift */; };
 		3FA4412CE0F0514E8F0E60AC /* TempChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */; };
 		525F39DEECD86524F3CA1196 /* CookEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B01224DDA851B722019E086 /* CookEditView.swift */; };
+		5BEF6252723BDBB2F1D53233 /* PhotosSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AFBDE7E16DA44C79B6A7C7C /* PhotosSection.swift */; };
 		657ABD437C23B4A9F96BF766 /* CookListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0059112890755B52BEE7323 /* CookListView.swift */; };
 		718409C029CD0D83F04B44E5 /* Fmt.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEAFAD7A017B4AC5E760CE3 /* Fmt.swift */; };
 		7AEC5508C1740D6E6950C8CA /* MeatCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A39E9D41070F89D3D7AD41 /* MeatCatalog.swift */; };
@@ -28,6 +30,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0AFBDE7E16DA44C79B6A7C7C /* PhotosSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosSection.swift; sourceTree = "<group>"; };
+		17C73A97E65F2A4BFA530FFE /* PhotoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoStore.swift; sourceTree = "<group>"; };
 		1ABD75E877824FBFE075AE8F /* Platform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform.swift; sourceTree = "<group>"; };
 		1ED207492480FF1386AEB728 /* TraegerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraegerClient.swift; sourceTree = "<group>"; };
 		3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempChartView.swift; sourceTree = "<group>"; };
@@ -93,6 +97,7 @@
 				E4458A6BF9DDA7B5EF29B971 /* CookDetailView.swift */,
 				3B01224DDA851B722019E086 /* CookEditView.swift */,
 				D0059112890755B52BEE7323 /* CookListView.swift */,
+				0AFBDE7E16DA44C79B6A7C7C /* PhotosSection.swift */,
 				DD826EDCB8D77059FBFB5313 /* SettingsView.swift */,
 				3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */,
 			);
@@ -106,6 +111,7 @@
 				4025E38C84684FF7521CAB53 /* AppSettings.swift */,
 				731A5DABEAAF857D3EA4F7A1 /* CookShare.swift */,
 				4F9429436C87C86BF44D3A69 /* CookStore.swift */,
+				17C73A97E65F2A4BFA530FFE /* PhotoStore.swift */,
 				AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */,
 				1ED207492480FF1386AEB728 /* TraegerClient.swift */,
 			);
@@ -215,6 +221,8 @@
 				718409C029CD0D83F04B44E5 /* Fmt.swift in Sources */,
 				7AEC5508C1740D6E6950C8CA /* MeatCatalog.swift in Sources */,
 				D0505A80D04EE8818B415409 /* Models.swift in Sources */,
+				0791C6CBB94F335BDA0E4DB5 /* PhotoStore.swift in Sources */,
+				5BEF6252723BDBB2F1D53233 /* PhotosSection.swift in Sources */,
 				C0C9668F7CE4B8D8B1216E4B /* Platform.swift in Sources */,
 				A8C07F59195136652F37B84D /* Recorder.swift in Sources */,
 				C11F74B36D2841FCF128D590 /* SettingsView.swift in Sources */,

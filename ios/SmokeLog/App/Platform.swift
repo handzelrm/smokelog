@@ -97,3 +97,38 @@ struct ClaudeShareButton: View {
         }
     }
 }
+
+extension Platform {
+    static var cameraAvailable: Bool {
+        #if os(iOS)
+        return UIImagePickerController.isSourceTypeAvailable(.camera)
+        #else
+        return false
+        #endif
+    }
+
+    /// Decodes an image file for display (call off the main thread).
+    static func image(at url: URL) -> Image? {
+        #if os(iOS)
+        guard let ui = UIImage(contentsOfFile: url.path) else { return nil }
+        return Image(uiImage: ui)
+        #else
+        guard let ns = NSImage(contentsOf: url) else { return nil }
+        return Image(nsImage: ns)
+        #endif
+    }
+}
+
+/// Presents the system share sheet with any items (text, image URLs…).
+struct ShareSheetModifier: ViewModifier {
+    @Binding var items: [Any]?
+    func body(content: Content) -> some View {
+        content.sheet(isPresented: Binding(get: { items != nil }, set: { if !$0 { items = nil } })) {
+            #if os(iOS)
+            ActivityView(items: items ?? []).presentationDetents([.medium, .large])
+            #else
+            Text("Sharing is available on iPhone.")
+            #endif
+        }
+    }
+}

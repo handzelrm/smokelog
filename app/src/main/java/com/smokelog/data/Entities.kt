@@ -135,3 +135,18 @@ data class CookEvent(
     val type: EventType,
     val note: String = "",
 )
+
+/** A picture attached to a cook. The JPEG lives in filesDir/photos/[fileName]. */
+@Serializable
+@Entity(
+    tableName = "photos",
+    foreignKeys = [ForeignKey(entity = Cook::class, parentColumns = ["id"], childColumns = ["cookId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("cookId")],
+)
+data class CookPhoto(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val cookId: Long,
+    val time: Long,
+    val fileName: String,
+    val caption: String = "",
+)

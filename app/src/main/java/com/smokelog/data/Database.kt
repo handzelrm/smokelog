@@ -59,23 +59,37 @@ abstract class CookDao {
     @Insert abstract suspend fun insertEvents(e: List<CookEvent>)
     @Delete abstract suspend fun deleteEvent(e: CookEvent)
 
+    @Query("SELECT * FROM photos WHERE cookId = :cookId ORDER BY time")
+    abstract fun observePhotos(cookId: Long): Flow<List<CookPhoto>>
+
+    @Query("SELECT * FROM photos WHERE cookId = :cookId ORDER BY time")
+    abstract suspend fun getPhotos(cookId: Long): List<CookPhoto>
+
+    @Insert abstract suspend fun insertPhoto(p: CookPhoto): Long
+    @Insert abstract suspend fun insertPhotos(p: List<CookPhoto>)
+    @Update abstract suspend fun updatePhoto(p: CookPhoto)
+    @Delete abstract suspend fun deletePhoto(p: CookPhoto)
+
     @Transaction
-    open suspend fun importCook(cook: Cook, readings: List<TempReading>, events: List<CookEvent>): Long {
+    open suspend fun importCook(
+        cook: Cook, readings: List<TempReading>, events: List<CookEvent>, photos: List<CookPhoto> = emptyList(),
+    ): Long {
         val id = insertCook(cook.copy(id = 0, traegerThing = null))
         insertReadings(readings.map { it.copy(id = 0, cookId = id) })
         insertEvents(events.map { it.copy(id = 0, cookId = id) })
+        insertPhotos(photos.map { it.copy(id = 0, cookId = id) })
         return id
     }
 }
 
-@Database(entities = [Cook::class, TempReading::class, CookEvent::class], version = 2, exportSchema = true)
+@Database(entities = [Cook::class, TempReading::class, CookEvent::class, CookPhoto::class], version = 3, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cookDao(): CookDao
 
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "smokelog.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -83,5 +97,14 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE cooks ADD COLUMN nextCookNotes TEXT NOT NULL DEFAULT ''")
             }
         }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(PHOTOS_TABLE_SQL)
+                db.execSQL(PHOTOS_INDEX_SQL)
+            }
+        }
+        private const val PHOTOS_TABLE_SQL = "CREATE TABLE IF NOT EXISTS `photos` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `cookId` INTEGER NOT NULL, `time` INTEGER NOT NULL, `fileName` TEXT NOT NULL, `caption` TEXT NOT NULL, FOREIGN KEY(`cookId`) REFERENCES `cooks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+        private const val PHOTOS_INDEX_SQL = "CREATE INDEX IF NOT EXISTS `index_photos_cookId` ON `photos` (`cookId`)"
     }
 }

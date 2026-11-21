@@ -3,10 +3,13 @@ package com.smokelog.share
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Base64
 import androidx.core.content.FileProvider
 import com.smokelog.data.Cook
 import com.smokelog.data.CookDao
 import com.smokelog.data.CookEvent
+import com.smokelog.data.CookPhoto
+import com.smokelog.data.PhotoStore
 import com.smokelog.data.Fmt
 import com.smokelog.data.TempReading
 import kotlinx.coroutines.Dispatchers
@@ -24,9 +27,14 @@ data class SharedCook(
     val cook: Cook,
     val readings: List<TempReading>,
     val events: List<CookEvent>,
+    val photos: List<SharedPhoto> = emptyList(),
 ) {
     companion object { const val FORMAT = "smokelog.cook" }
 }
+
+/** A cook photo embedded in a shared file (JPEG, base64). Older app versions ignore it. */
+@Serializable
+data class SharedPhoto(val time: Long, val caption: String = "", val jpegBase64: String)
 
 object CookShare {
     private val json = Json { prettyPrint = true; ignoreUnknownKeys = true; encodeDefaults = true }
@@ -106,24 +114,43 @@ object CookShare {
     }
     private fun String.prefixed() = if (isBlank()) "" else " – $this"
 
-    fun toJson(cook: Cook, readings: List<TempReading>, events: List<CookEvent>): String =
-        json.encodeToString(SharedCook(cook = cook.copy(traegerThing = null), readings = readings, events = events))
+    fun toJson(cook: Cook, readings: List<TempReading>, events: List<CookEvent>, photos: List<SharedPhoto> = emptyList()): String =
+        json.encodeToString(SharedCook(cook = cook.copy(traegerThing = null), readings = readings, events = events, photos = photos))
 
-    fun shareText(context: Context, cook: Cook, readings: List<TempReading>, events: List<CookEvent>) {
-        val send = Intent(Intent.ACTION_SEND)
-            .setType("text/plain")
+    private fun embed(photos: List<CookPhoto>, store: PhotoStore): List<SharedPhoto> = photos.mapNotNull { p ->
+        val f = store.file(p.fileName)
+        if (!f.exists()) null else SharedPhoto(p.time, p.caption, Base64.encodeToString(f.readBytes(), Base64.NO_WRAP))
+    }
+
+    /** Text recap, with the cook's photos attached when there are any. */
+    fun shareText(
+        context: Context, cook: Cook, readings: List<TempReading>, events: List<CookEvent>,
+        photos: List<CookPhoto> = emptyList(), store: PhotoStore? = null,
+    ) {
+        val text = summary(cook, readings, events)
+        val uris = if (store == null) emptyList() else photos.filter { store.file(it.fileName).exists() }.map { store.shareUri(it.fileName) }
+        val send = if (uris.isEmpty()) {
+            Intent(Intent.ACTION_SEND).setType("text/plain")
+        } else {
+            Intent(Intent.ACTION_SEND_MULTIPLE).setType("image/jpeg")
+                .putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
             .putExtra(Intent.EXTRA_SUBJECT, cook.displayTitle)
-            .putExtra(Intent.EXTRA_TEXT, summary(cook, readings, events))
+            .putExtra(Intent.EXTRA_TEXT, text)
         context.startActivity(Intent.createChooser(send, "Share cook summary"))
     }
 
-    /** Shares the full cook (including every temperature reading) as a file another SmokeLog can import. */
-    suspend fun shareFile(context: Context, cook: Cook, readings: List<TempReading>, events: List<CookEvent>) {
+    /** Shares the full cook (every temperature reading and photo) as a file another SmokeLog can import. */
+    suspend fun shareFile(
+        context: Context, cook: Cook, readings: List<TempReading>, events: List<CookEvent>,
+        photos: List<CookPhoto> = emptyList(), store: PhotoStore? = null,
+    ) {
         val uri = withContext(Dispatchers.IO) {
             val dir = File(context.cacheDir, "shared").apply { mkdirs() }
             val safe = cook.displayTitle.replace(Regex("[^A-Za-z0-9]+"), "_").trim('_').take(40).ifBlank { "cook" }
             val file = File(dir, "$safe.smokelog.json")
-            file.writeText(toJson(cook, readings, events))
+            file.writeText(toJson(cook, readings, events, if (store == null) emptyList() else embed(photos, store)))
             FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         }
         val send = Intent(Intent.ACTION_SEND)
@@ -141,6 +168,11 @@ object CookShare {
             ?: error("Couldn't open the shared file")
         val shared = json.decodeFromString<SharedCook>(text)
         require(shared.format == SharedCook.FORMAT) { "Not a SmokeLog cook file" }
-        dao.importCook(shared.cook.copy(title = shared.cook.displayTitle + " (shared)"), shared.readings, shared.events)
+        val store = (context.applicationContext as com.smokelog.SmokeLogApp).photos
+        val photos = shared.photos.mapNotNull { p ->
+            runCatching { CookPhoto(cookId = 0, time = p.time, caption = p.caption,
+                fileName = store.importBytes(Base64.decode(p.jpegBase64, Base64.DEFAULT))) }.getOrNull()
+        }
+        dao.importCook(shared.cook.copy(title = shared.cook.displayTitle + " (shared)"), shared.readings, shared.events, photos)
     }
 }

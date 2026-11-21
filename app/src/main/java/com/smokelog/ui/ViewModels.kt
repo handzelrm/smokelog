@@ -125,6 +125,44 @@ class CookDetailViewModel(val cookId: Long) : ViewModel() {
     val cook = dao.observeCook(cookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     val readings = dao.observeReadings(cookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val events = dao.observeEvents(cookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val photos = dao.observePhotos(cookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val photoStore get() = app.photos
+
+    private val _photoError = MutableStateFlow<String?>(null)
+    val photoError: StateFlow<String?> = _photoError.asStateFlow()
+
+    /** A temp file for the camera app to write into: (path to remember across process death, content Uri). */
+    fun newCaptureTarget(): Pair<String, android.net.Uri> =
+        app.photos.newCameraTarget().let { (f, uri) -> f.absolutePath to uri }
+
+    fun onCaptured(success: Boolean, path: String?) = viewModelScope.launch {
+        val f = path?.let { java.io.File(it) } ?: return@launch
+        if (success && f.length() > 0) addPhoto(android.net.Uri.fromFile(f))
+        f.delete()
+    }
+
+    fun addPhotos(uris: List<android.net.Uri>) = viewModelScope.launch { uris.forEach { addPhoto(it) } }
+
+    private suspend fun addPhoto(uri: android.net.Uri) {
+        try {
+            val name = app.photos.importImage(uri)
+            dao.insertPhoto(com.smokelog.data.CookPhoto(cookId = cookId, time = System.currentTimeMillis(), fileName = name))
+            _photoError.value = null
+        } catch (e: Exception) {
+            _photoError.value = "Couldn't add that photo: ${e.message ?: "unknown error"}"
+        }
+    }
+
+    fun updateCaption(p: com.smokelog.data.CookPhoto, caption: String) = viewModelScope.launch {
+        dao.updatePhoto(p.copy(caption = caption.trim()))
+    }
+
+    fun deletePhoto(p: com.smokelog.data.CookPhoto) = viewModelScope.launch {
+        dao.deletePhoto(p)
+        app.photos.delete(p.fileName)
+    }
+
+    fun clearPhotoError() { _photoError.value = null }
     val live = CookMonitorService.live
     val monitoringId = app.monitoringCookId
     val settings: StateFlow<Settings.Snapshot> = app.settings.state
@@ -210,6 +248,7 @@ class CookDetailViewModel(val cookId: Long) : ViewModel() {
 
     fun delete(onDone: () -> Unit) = viewModelScope.launch {
         if (monitoringId.value == cookId) stopMonitoring()
+        dao.getPhotos(cookId).forEach { app.photos.delete(it.fileName) }
         cook.value?.let { dao.deleteCook(it) }
         onDone()
     }

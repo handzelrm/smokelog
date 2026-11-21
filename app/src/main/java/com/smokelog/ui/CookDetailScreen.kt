@@ -68,6 +68,8 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
     val cook by vm.cook.collectAsState()
     val readings by vm.readings.collectAsState()
     val events by vm.events.collectAsState()
+    val photos by vm.photos.collectAsState()
+    val photoError by vm.photoError.collectAsState()
     val live by vm.live.collectAsState()
     val monitoringId by vm.monitoringId.collectAsState()
     val grills by vm.grills.collectAsState()
@@ -92,10 +94,10 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
                     IconButton(onClick = { shareMenu = true }) { Icon(Icons.Default.Share, "Share") }
                     DropdownMenu(shareMenu, { shareMenu = false }) {
                         DropdownMenuItem(text = { Text("Share summary (text)") }, onClick = {
-                            shareMenu = false; c?.let { CookShare.shareText(context, it, readings, events) }
+                            shareMenu = false; c?.let { CookShare.shareText(context, it, readings, events, photos, vm.photoStore) }
                         })
                         DropdownMenuItem(text = { Text("Share full cook file") }, onClick = {
-                            shareMenu = false; c?.let { scope.launch { CookShare.shareFile(context, it, readings, events) } }
+                            shareMenu = false; c?.let { scope.launch { CookShare.shareFile(context, it, readings, events, photos, vm.photoStore) } }
                         })
                     }
                     IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, "More") }
@@ -159,6 +161,13 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
 
             // ---- Chart
             Section("Temperatures") { TempChart(c, readings) }
+
+            // ---- Photos
+            PhotosSection(
+                photos = photos, store = vm.photoStore, startTime = c.startTime, error = photoError,
+                newCaptureTarget = vm::newCaptureTarget, onCaptured = vm::onCaptured, onPicked = vm::addPhotos,
+                onCaption = vm::updateCaption, onDelete = vm::deletePhoto,
+            )
 
             // ---- Setup & prep
             Section("Setup & prep") { DetailsBlock(c) }

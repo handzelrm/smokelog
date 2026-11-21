@@ -51,6 +51,7 @@ final class CookStore {
     }
 
     func delete(_ id: UUID) {
+        cook(id)?.photoList.forEach { PhotoStore.shared.delete($0.fileName) }
         cooks.removeAll { $0.id == id }
         try? FileManager.default.removeItem(at: file(id))
     }

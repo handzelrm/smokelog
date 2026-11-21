@@ -79,6 +79,14 @@ enum CookShare {
         var cook: CookDTO
         var readings: [ReadingDTO]
         var events: [EventDTO]
+        var photos: [PhotoDTO]?
+    }
+
+    /// A photo embedded in the cook file (JPEG, base64) – same as Android. Older versions ignore it.
+    struct PhotoDTO: Codable {
+        var time: Int64
+        var caption: String?
+        var jpegBase64: String
     }
 
     // ids are Android database keys: written for compatibility, optional when reading.
@@ -151,7 +159,11 @@ enum CookShare {
                 ReadingDTO(time: ms($0.time)!, grillF: $0.grillF, grillSetF: $0.grillSetF, probeF: $0.probeF,
                            probe2F: $0.probe2F, probeTargetF: $0.probeTargetF, source: $0.source)
             },
-            events: c.events.sorted { $0.time < $1.time }.map { EventDTO(time: ms($0.time)!, type: $0.type.rawValue, note: $0.note) })
+            events: c.events.sorted { $0.time < $1.time }.map { EventDTO(time: ms($0.time)!, type: $0.type.rawValue, note: $0.note) },
+            photos: c.photoList.compactMap { p in
+                guard let data = try? Data(contentsOf: PhotoStore.shared.url(p.fileName)) else { return nil }
+                return PhotoDTO(time: ms(p.time)!, caption: p.caption, jpegBase64: data.base64EncodedString())
+            })
         let enc = JSONEncoder()
         enc.outputFormatting = [.prettyPrinted, .sortedKeys]
         return try enc.encode(file)
@@ -193,6 +205,10 @@ enum CookShare {
                         probe2F: $0.probe2F, probeTargetF: $0.probeTargetF, source: $0.source ?? "manual")
         }
         c.events = f.events.map { CookEvent(time: date($0.time)!, type: EventType(rawValue: $0.type) ?? .note, note: $0.note ?? "") }
+        c.photos = (f.photos ?? []).compactMap { p in
+            guard let data = Data(base64Encoded: p.jpegBase64), let name = try? PhotoStore.shared.save(jpeg: data) else { return nil }
+            return CookPhoto(time: date(p.time)!, fileName: name, caption: p.caption ?? "")
+        }
         return c
     }
 }

@@ -46,6 +46,7 @@ adb install -r SmokeLog.apk
 | Off & rest | time taken off, internal temp, total cook time (and h/lb), rest location (cooler, oven, …), rest end time or length, notes |
 | Timeline | spritzes, temp changes, flips, stalls, custom notes |
 | Result | 1–5 rating and notes |
+| Photos | take pictures with the camera or add up to 10 from the photo library; captions; full-screen viewer; included when sharing |
 | Notes for next cook | free text; shown at the top of your next cook of the same meat (up to the 3 most recent) |
 
 On the cook screen, the **Wrapped now**, **Taken off now** and **Rest done now** buttons record the current time and the current probe temp.

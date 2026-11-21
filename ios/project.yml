@@ -27,6 +27,7 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIApplicationSupportsIndirectInputEvents: true
+        NSCameraUsageDescription: Take photos of your cook (bark, smoke ring, slices) to keep with the log.
         LSSupportsOpeningDocumentsInPlace: false
         UISupportsDocumentBrowser: false
         CFBundleDocumentTypes:

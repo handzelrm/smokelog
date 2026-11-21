@@ -73,6 +73,14 @@ struct TempReading: Codable, Hashable, Identifiable {
     var source: String = "manual"
 }
 
+/// A picture attached to a cook; the JPEG lives in Application Support/photos/[fileName].
+struct CookPhoto: Codable, Hashable, Identifiable {
+    var id = UUID()
+    var time: Date
+    var fileName: String
+    var caption: String = ""
+}
+
 struct CookEvent: Codable, Hashable, Identifiable {
     var id = UUID()
     var time: Date
@@ -134,6 +142,10 @@ struct Cook: Codable, Hashable, Identifiable {
     var traegerThing: String?
     var readings: [TempReading] = []
     var events: [CookEvent] = []
+    /// Optional so cook files saved before photos existed still load.
+    var photos: [CookPhoto]?
+
+    var photoList: [CookPhoto] { (photos ?? []).sorted { $0.time < $1.time } }
 
     var sortDate: Date { startTime ?? createdAt }
 
