@@ -244,6 +244,8 @@ private fun BigStat(label: String, value: String, sub: String?) {
 private fun DetailsBlock(c: Cook) {
     fun hrs(h: Double?, suffix: String) = h?.let { " (${Fmt.num(it)} h$suffix)" } ?: ""
     KeyValue("Meat", listOf(c.meat, c.cut).filter { it.isNotBlank() }.joinToString(" – ") + (c.weightLb?.let { " · ${Fmt.num(it)} lb" } ?: ""))
+    KeyValue("Category", c.effectiveCategory)
+    KeyValue("Tags", c.tagList.joinToString(", "))
     KeyValue("Smoker", listOf(c.smoker, c.smokerTempF?.let { "${it}°F" } ?: "").filter { it.isNotBlank() }.joinToString(" @ "))
     KeyValue("Pellets / wood", c.fuel)
     KeyValue("Placement", listOfNotNull(c.placement?.label, c.placementNotes.ifBlank { null }).joinToString(" – "))

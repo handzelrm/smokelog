@@ -94,6 +94,12 @@ data class Cook(
     /** Shown on the next cook of the same meat. */
     @ColumnInfo(defaultValue = "") val nextCookNotes: String = "",
 
+    // Organizing
+    /** The person's own labels, comma-separated (see [Tags]). */
+    @ColumnInfo(defaultValue = "") val tags: String = "",
+    /** Category chosen by hand; blank = worked out from the meat (see [MeatCatalog.categoryFor]). */
+    @ColumnInfo(defaultValue = "") val category: String = "",
+
     // Live data
     val traegerThing: String? = null, // grill id used for live readings
 ) {
@@ -101,6 +107,8 @@ data class Cook(
     val wrapElapsedMinutes: Long? get() = if (startTime != null && wrapTime != null) (wrapTime - startTime) / 60_000 else null
     val effectiveRestMinutes: Int?
         get() = restMinutes ?: if (offTime != null && restEndTime != null) ((restEndTime - offTime) / 60_000).toInt() else null
+    val tagList: List<String> get() = Tags.parse(tags)
+    val effectiveCategory: String get() = category.ifBlank { MeatCatalog.categoryFor(meat) }
     val displayTitle: String get() = title.ifBlank { listOf(meat, cut).filter { it.isNotBlank() }.joinToString(" – ").ifBlank { "Untitled cook" } }
 }
 

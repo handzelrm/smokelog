@@ -7,6 +7,9 @@ struct CookListView: View {
     @State private var showSettings = false
     @State private var editNew: UUID?
     @State private var importError: String?
+    @State private var query = CookQuery()
+    @AppStorage("list_sort") private var sort: CookSort = .newest
+    @AppStorage("list_group") private var group: CookGroup = .none
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -15,9 +18,7 @@ struct CookListView: View {
                     ContentUnavailableView("No cooks yet", systemImage: "flame",
                                            description: Text("Tap + to start logging your first smoke."))
                 } else {
-                    List(store.cooks) { cook in
-                        NavigationLink(value: cook.id) { row(cook) }
-                    }
+                    cookList
                 }
             }
             .navigationTitle("SmokeLog")
@@ -29,6 +30,15 @@ struct CookListView: View {
                         path.append(c.id)
                         editNew = c.id
                     } label: { Label("New cook", systemImage: "plus") }
+                }
+                if !store.cooks.isEmpty {
+                    ToolbarItem(placement: .primaryAction) {
+                        Menu {
+                            Picker("Sort by", selection: $sort) { ForEach(CookSort.allCases) { Text($0.label).tag($0) } }
+                            Picker("Group by", selection: $group) { ForEach(CookGroup.allCases) { Text($0.label).tag($0) } }
+                        } label: { Label("Sort and group", systemImage: "arrow.up.arrow.down") }
+                        .pickerStyle(.menu)
+                    }
                 }
                 ToolbarItem(placement: .navigation) {
                     Button { showSettings = true } label: { Label("Settings", systemImage: "gearshape") }
@@ -45,7 +55,45 @@ struct CookListView: View {
         .onOpenURL { url in importFile(url) }
     }
 
-    private func row(_ c: Cook) -> some View {
+    private var cookList: some View {
+        var q = query
+        q.sort = sort
+        q.group = group
+        let sections = q.run(store.cooks)
+        let shown = sections.reduce(0) { $0 + $1.hits.count }
+        let categories = store.categoryCounts, tags = store.tagCounts
+        return List {
+            if categories.count > 1 || !tags.isEmpty || !query.categories.isEmpty {
+                Section {
+                    FilterChips(categories: categories, tags: tags, query: $query)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                }
+            }
+            if q.isFiltering {
+                Section {
+                    HStack {
+                        Text(shown == 0 ? "No cooks match" : "\(shown) of \(store.cooks.count) cooks").foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Clear") { query = CookQuery() }.buttonStyle(.borderless)
+                    }
+                    .font(.subheadline)
+                    .listRowBackground(Color.clear)
+                }
+            }
+            ForEach(sections) { s in
+                Section {
+                    ForEach(s.hits) { hit in NavigationLink(value: hit.cook.id) { row(hit.cook, snippet: hit.snippet) } }
+                } header: {
+                    if let t = s.title { Text("\(t) (\(s.hits.count))") }
+                }
+            }
+        }
+        .compactSections()
+        .searchable(text: $query.text, prompt: "Search cooks, rubs, wood, notes…")
+    }
+
+    private func row(_ c: Cook, snippet: String?) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(c.displayTitle).font(.headline)
@@ -57,6 +105,10 @@ struct CookListView: View {
                 .filter { !$0.isEmpty }.joined(separator: " · "))
                 .font(.subheadline).foregroundStyle(.secondary)
             if let r = c.rating { Text(Fmt.stars(r)).foregroundStyle(.tint) }
+            if !c.tagList.isEmpty {
+                Text(c.tagList.map { "#\($0)" }.joined(separator: "  ")).font(.caption).foregroundStyle(.secondary)
+            }
+            if let snippet { Text(snippet).font(.caption).foregroundStyle(.secondary).lineLimit(2) }
         }
         .padding(.vertical, 2)
     }

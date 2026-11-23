@@ -51,6 +51,14 @@ adb install -r SmokeLog.apk
 
 On the cook screen, the **Wrapped now**, **Taken off now** and **Rest done now** buttons record the current time and the current probe temp.
 
+## Organizing and search
+
+- **Categories:** every cook is filed under Beef, Pork, Poultry, Lamb & game, Seafood or Other, worked out from the meat (including meats you type yourself). Change it under **Organize** when editing a cook.
+- **Tags:** add your own labels, such as *Competition* or *Thanksgiving*. They travel with shared cooks.
+- **Filter:** tap category and tag chips above the list. Several categories show cooks in any of them; several tags show cooks that have all of them.
+- **Sort and group:** newest, oldest, highest rated, longest or by name; grouped by category, meat or month. Your choice is remembered.
+- **Search:** looks through titles, meats, tags, seasoning, brines, wood, notes, timeline events, photo captions and AI debriefs, ignoring accents and capitals. Every word has to match, and each result shows where it matched.
+
 ## Traeger integration
 
 - In **Settings**, enter your Traeger app (WiFIRE) email and password, then tap **Test connection**.
@@ -88,7 +96,7 @@ Open the folder in Android Studio (Ladybug or newer) and run the `app` configura
 ./gradlew assembleDebug
 ```
 
-The APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Min SDK 26, target SDK 35.
+The APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Run the tests with `./gradlew testDebugUnitTest`. Min SDK 26, target SDK 35.
 
 ## Feature requests
 

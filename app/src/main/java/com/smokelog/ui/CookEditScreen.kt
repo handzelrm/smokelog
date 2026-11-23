@@ -84,6 +84,11 @@ fun CookEditScreen(vm: CookEditViewModel, onDone: () -> Unit) {
                 NumberRow("Weight", c.weightLb, { v -> set { it.copy(weightLb = v) } }, suffix = "lb")
             }
 
+            Section("Organize") {
+                CategoryRow(c.meat, c.category) { v -> set { it.copy(category = v) } }
+                TagEditor(c.tags, vm.knownTags, vm.pendingTag, onPending = vm::typeTag, onAdd = vm::addTag, onRemove = vm::removeTag)
+            }
+
             LaunchedEffect(c.meat) { vm.loadPastNotes(c.meat) }
             PastNotesCard(c.meat, vm.pastNotes)
 

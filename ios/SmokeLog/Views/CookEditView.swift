@@ -8,6 +8,7 @@ struct CookEditView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft = Cook()
     @State private var loaded = false
+    @State private var pendingTag = ""
 
     // AI quick fill
     @State private var notes = ""
@@ -25,6 +26,11 @@ struct CookEditView: View {
                     TextField("Title (optional)", text: $draft.title)
                     MeatPicker(meat: $draft.meat, cut: $draft.cut)
                     NumberRow(title: "Weight", value: $draft.weightLb, unit: "lb")
+                }
+
+                Section("Organize") {
+                    CategoryPicker(meat: draft.meat, category: $draft.category)
+                    TagEditor(tags: Binding(get: { draft.tags ?? "" }, set: { draft.tags = $0 }), pending: $pendingTag, known: knownTags)
                 }
 
                 let past = store.nextCookNotes(meat: draft.meat, excluding: draft.id)
@@ -108,12 +114,23 @@ struct CookEditView: View {
             .inlineTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Save") { store.save(draft); dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Save") { save() } }
             }
             .onAppear {
                 if !loaded, let c = store.cook(cookId) { draft = c; loaded = true }
             }
         }
+    }
+
+    private var knownTags: [String] { store.tagCounts.map(\.name) }
+
+    private func save() {
+        // Keep a tag that was typed but not yet added.
+        if !pendingTag.trimmingCharacters(in: .whitespaces).isEmpty {
+            draft.tags = Tags.add(draft.tags ?? "", pendingTag, known: knownTags)
+        }
+        store.save(draft)
+        dismiss()
     }
 
     @ViewBuilder private var aiSection: some View {

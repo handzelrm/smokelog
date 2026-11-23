@@ -14,8 +14,8 @@ android {
         applicationId = "com.smokelog"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
     }
 
     buildTypes {
@@ -79,6 +79,8 @@ dependencies {
 
     // Traeger live data arrives over MQTT-over-WebSocket (AWS IoT)
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+
+    testImplementation("junit:junit:4.13.2")
 
     // AI assistant (Claude)
     implementation("com.anthropic:anthropic-java:3.3.0")

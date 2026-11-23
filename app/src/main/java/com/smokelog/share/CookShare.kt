@@ -48,6 +48,7 @@ object CookShare {
             cook.weightLb?.let { "${Fmt.num(it)} lb" },
         ).joinToString(", ")
         if (meat.isNotBlank()) appendLine(meat)
+        line("Tags", cook.tagList.joinToString(", "))
         appendLine()
 
         appendLine("SETUP")

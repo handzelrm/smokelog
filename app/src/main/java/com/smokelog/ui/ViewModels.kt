@@ -7,7 +7,12 @@ import com.smokelog.ai.CookPatch
 import com.smokelog.data.Cook
 import com.smokelog.data.CookEvent
 import com.smokelog.data.EventType
+import com.smokelog.data.CookGroup
+import com.smokelog.data.CookQuery
+import com.smokelog.data.CookSection
+import com.smokelog.data.CookSort
 import com.smokelog.data.Settings
+import com.smokelog.data.Tags
 import com.smokelog.data.TempReading
 import com.smokelog.data.WrapMethod
 import com.smokelog.traeger.CookMonitorService
@@ -16,7 +21,11 @@ import com.smokelog.traeger.TraegerClient
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,9 +36,45 @@ import kotlin.math.roundToInt
 private val app get() = SmokeLogApp.instance
 private val dao get() = app.db.cookDao()
 
+/** What the list shows, plus the categories and tags in use (with counts) to filter by. */
+data class CookListUi(
+    val loaded: Boolean = false,
+    val total: Int = 0,
+    val sections: List<CookSection> = emptyList(),
+    val categories: List<Pair<String, Int>> = emptyList(),
+    val tags: List<Pair<String, Int>> = emptyList(),
+)
+
 class CookListViewModel : ViewModel() {
-    val cooks = dao.observeCooks().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val monitoring = app.monitoringCookId
+    private val prefs = app.getSharedPreferences("cook_list", android.content.Context.MODE_PRIVATE)
+
+    /** Compose state so the search box updates synchronously while typing. Sort and grouping are remembered. */
+    var query by mutableStateOf(CookQuery(
+        sort = CookSort.entries.firstOrNull { it.name == prefs.getString("sort", null) } ?: CookSort.NEWEST,
+        group = CookGroup.entries.firstOrNull { it.name == prefs.getString("group", null) } ?: CookGroup.NONE,
+    ))
+        private set
+
+    val ui: StateFlow<CookListUi> = combine(
+        dao.observeCooks(), dao.observeAllEvents(), dao.observeAllPhotos(), snapshotFlow { query },
+    ) { cooks, events, photos, q ->
+        CookListUi(
+            loaded = true,
+            total = cooks.size,
+            sections = q.run(cooks, events.groupBy { it.cookId }, photos.groupBy { it.cookId }),
+            categories = cooks.groupingBy { it.effectiveCategory }.eachCount().toList().sortedBy { CookQuery.categoryOrder(it.first) },
+            tags = cooks.flatMap { it.tagList }.groupBy { it.lowercase() }.map { (_, v) -> v.first() to v.size }
+                .sortedWith(compareByDescending<Pair<String, Int>> { it.second }.thenBy { it.first.lowercase() }),
+        )
+    }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CookListUi())
+
+    fun update(change: (CookQuery) -> CookQuery) {
+        query = change(query)
+        prefs.edit().putString("sort", query.sort.name).putString("group", query.group.name).apply()
+    }
+
+    fun clearFilters() = update { it.copy(text = "", categories = emptySet(), tags = emptySet()) }
 
     fun newCook(onCreated: (Long) -> Unit) = viewModelScope.launch {
         onCreated(dao.insertCook(Cook()))
@@ -47,6 +92,16 @@ class CookEditViewModel(private val cookId: Long) : ViewModel() {
     // Compose state (not StateFlow) so text fields update synchronously while typing.
     var draft by mutableStateOf<Cook?>(null)
         private set
+    /** Text in the tag box that hasn't become a tag yet; saved with the cook so it isn't lost. */
+    var pendingTag by mutableStateOf("")
+        private set
+    var knownTags by mutableStateOf<List<String>>(emptyList())
+        private set
+
+    fun typeTag(s: String) { pendingTag = s }
+    fun addTag(s: String) { update { it.copy(tags = Tags.add(it.tags, s, knownTags)) }; pendingTag = "" }
+    fun removeTag(s: String) = update { it.copy(tags = Tags.remove(it.tags, s)) }
+
     private val _ai = MutableStateFlow(AiState())
     val ai: StateFlow<AiState> = _ai.asStateFlow()
     val aiEnabled get() = app.settings.state.value.hasAi
@@ -62,11 +117,17 @@ class CookEditViewModel(private val cookId: Long) : ViewModel() {
     private var pendingEvents: List<CookEvent> = emptyList()
     private var pendingReadings: List<TempReading> = emptyList()
 
-    init { viewModelScope.launch { draft = dao.getCook(cookId) } }
+    init {
+        viewModelScope.launch {
+            draft = dao.getCook(cookId)
+            knownTags = dao.allTagStrings().flatMap { Tags.parse(it) }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() }
+        }
+    }
 
     fun update(f: (Cook) -> Cook) { draft = draft?.let(f) }
 
     fun save(onDone: () -> Unit) = viewModelScope.launch {
+        if (pendingTag.isNotBlank()) addTag(pendingTag)
         draft?.let { dao.updateCook(it) }
         if (pendingEvents.isNotEmpty()) dao.insertEvents(pendingEvents)
         if (pendingReadings.isNotEmpty()) dao.insertReadings(pendingReadings)

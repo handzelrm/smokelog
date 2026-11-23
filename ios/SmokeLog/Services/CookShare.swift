@@ -18,6 +18,7 @@ enum CookShare {
         if let s = c.startTime { out.append(Fmt.date(s)) }
         let meat = [c.meat, c.cut, c.weightLb.map { "\(Fmt.num($0)) lb" } ?? ""].filter { !$0.isEmpty }.joined(separator: ", ")
         if !meat.isEmpty { out.append(meat) }
+        line("Tags", c.tagList.joined(separator: ", "))
         out.append("")
 
         out.append("SETUP")
@@ -121,6 +122,7 @@ enum CookShare {
         var restNotes: String?
         var rating: Int?
         var resultNotes, aiAnalysis, nextCookNotes: String?
+        var tags, category: String?
     }
 
     struct ReadingDTO: Codable {
@@ -152,7 +154,7 @@ enum CookShare {
             wrapMethod: c.wrapMethod?.rawValue, wrapNotes: c.wrapNotes, offTime: ms(c.offTime), offInternalF: c.offInternalF,
             restLocation: c.restLocation?.rawValue, restEndTime: ms(c.restEndTime), restMinutes: c.restMinutes,
             restNotes: c.restNotes, rating: c.rating, resultNotes: c.resultNotes, aiAnalysis: c.aiAnalysis,
-            nextCookNotes: c.nextCookNotes)
+            nextCookNotes: c.nextCookNotes, tags: c.tags ?? "", category: c.category ?? "")
         let file = FileDTO(
             format: format, version: 1, cook: dto,
             readings: c.readings.sorted { $0.time < $1.time }.map {
@@ -199,6 +201,7 @@ enum CookShare {
         c.restMinutes = d.restMinutes; c.restNotes = d.restNotes ?? ""
         c.rating = d.rating; c.resultNotes = d.resultNotes ?? ""; c.aiAnalysis = d.aiAnalysis ?? ""
         c.nextCookNotes = d.nextCookNotes ?? ""
+        c.tags = d.tags; c.category = d.category.flatMap { $0.isEmpty ? nil : $0 }
         c.title = c.displayTitle + " (shared)"
         c.readings = f.readings.map {
             TempReading(time: date($0.time)!, grillF: $0.grillF, grillSetF: $0.grillSetF, probeF: $0.probeF,

@@ -145,6 +145,18 @@ struct Cook: Codable, Hashable, Identifiable {
     /// Optional so cook files saved before photos existed still load.
     var photos: [CookPhoto]?
 
+    // Organizing. Optional so cooks saved before these existed still load.
+    /// The person's own labels, comma-separated (see Tags).
+    var tags: String?
+    /// Category chosen by hand; nil = worked out from the meat.
+    var category: String?
+
+    var tagList: [String] { Tags.parse(tags ?? "") }
+    var effectiveCategory: String {
+        if let c = category, !c.isEmpty { return c }
+        return MeatCatalog.category(for: meat)
+    }
+
     var photoList: [CookPhoto] { (photos ?? []).sorted { $0.time < $1.time } }
 
     var sortDate: Date { startTime ?? createdAt }

@@ -15,7 +15,9 @@
 		657ABD437C23B4A9F96BF766 /* CookListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0059112890755B52BEE7323 /* CookListView.swift */; };
 		718409C029CD0D83F04B44E5 /* Fmt.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEAFAD7A017B4AC5E760CE3 /* Fmt.swift */; };
 		7AEC5508C1740D6E6950C8CA /* MeatCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A39E9D41070F89D3D7AD41 /* MeatCatalog.swift */; };
+		84C6A6541A2AE28AA6B68C01 /* CookQueryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064C6918FDB2BEC09B727801 /* CookQueryTests.swift */; };
 		867713A3F53493C6455C2B72 /* TraegerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED207492480FF1386AEB728 /* TraegerClient.swift */; };
+		9F21B479BEAE76432CA6D522 /* CookQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C576421B66AF412390C527 /* CookQuery.swift */; };
 		A2D13344EBE17BEA03F115CB /* AIAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4DB39E3CF585EC00020FD4 /* AIAssistant.swift */; };
 		A8C07F59195136652F37B84D /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */; };
 		B7470DC2EA4CE74C937E5914 /* SmokeLogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5ADD34FC6407FFD0F5A8A5 /* SmokeLogApp.swift */; };
@@ -24,26 +26,41 @@
 		C11F74B36D2841FCF128D590 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD826EDCB8D77059FBFB5313 /* SettingsView.swift */; };
 		CF30CE74433F8A4FF3CE9D4F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 69C36335D9405CA3F4DF9A5A /* Assets.xcassets */; };
 		D0505A80D04EE8818B415409 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC543ABDE36C8C899169FD4 /* Models.swift */; };
+		D332133BE0EF89D61C94927F /* Organize.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8CDD5761C0101419349E909 /* Organize.swift */; };
 		D6A7326F1BE2DDBACDC51A66 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90917037FE2EF22CAE8C205 /* Components.swift */; };
 		D94848BC11E086BC8CC2F467 /* CookDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4458A6BF9DDA7B5EF29B971 /* CookDetailView.swift */; };
 		F99220A72805A12090274126 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4025E38C84684FF7521CAB53 /* AppSettings.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		9158D74EB6393E3DA4760E70 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 217D055513B03CA3B5D9D6B9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 472DE90181388EAA770CC1B3;
+			remoteInfo = SmokeLog;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		064C6918FDB2BEC09B727801 /* CookQueryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookQueryTests.swift; sourceTree = "<group>"; };
 		0AFBDE7E16DA44C79B6A7C7C /* PhotosSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosSection.swift; sourceTree = "<group>"; };
 		17C73A97E65F2A4BFA530FFE /* PhotoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoStore.swift; sourceTree = "<group>"; };
 		1ABD75E877824FBFE075AE8F /* Platform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform.swift; sourceTree = "<group>"; };
 		1ED207492480FF1386AEB728 /* TraegerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraegerClient.swift; sourceTree = "<group>"; };
+		26C576421B66AF412390C527 /* CookQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookQuery.swift; sourceTree = "<group>"; };
 		3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempChartView.swift; sourceTree = "<group>"; };
 		3B01224DDA851B722019E086 /* CookEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookEditView.swift; sourceTree = "<group>"; };
 		3B4DB39E3CF585EC00020FD4 /* AIAssistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistant.swift; sourceTree = "<group>"; };
 		4025E38C84684FF7521CAB53 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		4F9429436C87C86BF44D3A69 /* CookStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookStore.swift; sourceTree = "<group>"; };
+		63DB0F516347BAFAC805591E /* SmokeLogTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SmokeLogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		69C36335D9405CA3F4DF9A5A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6DC543ABDE36C8C899169FD4 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		731A5DABEAAF857D3EA4F7A1 /* CookShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookShare.swift; sourceTree = "<group>"; };
 		7556E4251C32D29410029381 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7A5ADD34FC6407FFD0F5A8A5 /* SmokeLogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeLogApp.swift; sourceTree = "<group>"; };
+		A8CDD5761C0101419349E909 /* Organize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Organize.swift; sourceTree = "<group>"; };
 		AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recorder.swift; sourceTree = "<group>"; };
 		C90917037FE2EF22CAE8C205 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		D0059112890755B52BEE7323 /* CookListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookListView.swift; sourceTree = "<group>"; };
@@ -68,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				F000781A7491B1B25700988C /* SmokeLog */,
+				52C7C01E341E9AA04A1FC4CA /* SmokeLogTests */,
 				8E7E9751C2C55C491C336E89 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -75,6 +93,7 @@
 		505C026E81ACB63ECD957FE4 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				26C576421B66AF412390C527 /* CookQuery.swift */,
 				FAEAFAD7A017B4AC5E760CE3 /* Fmt.swift */,
 				F4A39E9D41070F89D3D7AD41 /* MeatCatalog.swift */,
 				6DC543ABDE36C8C899169FD4 /* Models.swift */,
@@ -82,10 +101,19 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		52C7C01E341E9AA04A1FC4CA /* SmokeLogTests */ = {
+			isa = PBXGroup;
+			children = (
+				064C6918FDB2BEC09B727801 /* CookQueryTests.swift */,
+			);
+			path = SmokeLogTests;
+			sourceTree = "<group>";
+		};
 		8E7E9751C2C55C491C336E89 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				D2ACA8740A7BFFD4E9889841 /* SmokeLog.app */,
+				63DB0F516347BAFAC805591E /* SmokeLogTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -97,6 +125,7 @@
 				E4458A6BF9DDA7B5EF29B971 /* CookDetailView.swift */,
 				3B01224DDA851B722019E086 /* CookEditView.swift */,
 				D0059112890755B52BEE7323 /* CookListView.swift */,
+				A8CDD5761C0101419349E909 /* Organize.swift */,
 				0AFBDE7E16DA44C79B6A7C7C /* PhotosSection.swift */,
 				DD826EDCB8D77059FBFB5313 /* SettingsView.swift */,
 				3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */,
@@ -160,6 +189,24 @@
 			productReference = D2ACA8740A7BFFD4E9889841 /* SmokeLog.app */;
 			productType = "com.apple.product-type.application";
 		};
+		6FFA412784C1BDA8DDF46D54 /* SmokeLogTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 76613CA63D6FBF469D64EE57 /* Build configuration list for PBXNativeTarget "SmokeLogTests" */;
+			buildPhases = (
+				73991BF9CA54D6B1344E509E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6EE8684133D2CC27157AEF30 /* PBXTargetDependency */,
+			);
+			name = SmokeLogTests;
+			packageProductDependencies = (
+			);
+			productName = SmokeLogTests;
+			productReference = 63DB0F516347BAFAC805591E /* SmokeLogTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -172,6 +219,9 @@
 					472DE90181388EAA770CC1B3 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
+					};
+					6FFA412784C1BDA8DDF46D54 = {
+						DevelopmentTeam = "";
 					};
 				};
 			};
@@ -189,6 +239,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				6FFA412784C1BDA8DDF46D54 /* SmokeLogTests */,
 				472DE90181388EAA770CC1B3 /* SmokeLog */,
 			);
 		};
@@ -216,11 +267,13 @@
 				D94848BC11E086BC8CC2F467 /* CookDetailView.swift in Sources */,
 				525F39DEECD86524F3CA1196 /* CookEditView.swift in Sources */,
 				657ABD437C23B4A9F96BF766 /* CookListView.swift in Sources */,
+				9F21B479BEAE76432CA6D522 /* CookQuery.swift in Sources */,
 				261638A9C6CCEE89318B1500 /* CookShare.swift in Sources */,
 				BB55365130355FA7E350E956 /* CookStore.swift in Sources */,
 				718409C029CD0D83F04B44E5 /* Fmt.swift in Sources */,
 				7AEC5508C1740D6E6950C8CA /* MeatCatalog.swift in Sources */,
 				D0505A80D04EE8818B415409 /* Models.swift in Sources */,
+				D332133BE0EF89D61C94927F /* Organize.swift in Sources */,
 				0791C6CBB94F335BDA0E4DB5 /* PhotoStore.swift in Sources */,
 				5BEF6252723BDBB2F1D53233 /* PhotosSection.swift in Sources */,
 				C0C9668F7CE4B8D8B1216E4B /* Platform.swift in Sources */,
@@ -232,7 +285,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		73991BF9CA54D6B1344E509E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				84C6A6541A2AE28AA6B68C01 /* CookQueryTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6EE8684133D2CC27157AEF30 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 472DE90181388EAA770CC1B3 /* SmokeLog */;
+			targetProxy = 9158D74EB6393E3DA4760E70 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		02AA9D383AA92CEAA2153FA8 /* Release */ = {
@@ -293,6 +362,23 @@
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
+		};
+		42908EA2101862D585100F11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.smokelog.ios.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SmokeLog.app/SmokeLog";
+			};
+			name = Debug;
 		};
 		5901C8C1100A1FD32AFFEDCB /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -360,6 +446,23 @@
 			};
 			name = Debug;
 		};
+		70056022C9429B4E0443B3ED /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.smokelog.ios.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SmokeLog.app/SmokeLog";
+			};
+			name = Release;
+		};
 		ADEDA2D35C422008468A5467 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -397,6 +500,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		76613CA63D6FBF469D64EE57 /* Build configuration list for PBXNativeTarget "SmokeLogTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				42908EA2101862D585100F11 /* Debug */,
+				70056022C9429B4E0443B3ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		CC9569BA735BD4E9B0CD171A /* Build configuration list for PBXNativeTarget "SmokeLog" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

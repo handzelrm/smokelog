@@ -19,6 +19,15 @@ abstract class CookDao {
     @Query("SELECT * FROM cooks ORDER BY COALESCE(startTime, createdAt) DESC")
     abstract fun observeCooks(): Flow<List<Cook>>
 
+    @Query("SELECT tags FROM cooks WHERE tags != ''")
+    abstract suspend fun allTagStrings(): List<String>
+
+    @Query("SELECT * FROM events ORDER BY time")
+    abstract fun observeAllEvents(): Flow<List<CookEvent>>
+
+    @Query("SELECT * FROM photos ORDER BY time")
+    abstract fun observeAllPhotos(): Flow<List<CookPhoto>>
+
     @Query("SELECT * FROM cooks WHERE id = :id")
     abstract fun observeCook(id: Long): Flow<Cook?>
 
@@ -82,14 +91,14 @@ abstract class CookDao {
     }
 }
 
-@Database(entities = [Cook::class, TempReading::class, CookEvent::class, CookPhoto::class], version = 3, exportSchema = true)
+@Database(entities = [Cook::class, TempReading::class, CookEvent::class, CookPhoto::class], version = 4, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cookDao(): CookDao
 
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "smokelog.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -102,6 +111,13 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(PHOTOS_TABLE_SQL)
                 db.execSQL(PHOTOS_INDEX_SQL)
+            }
+        }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE cooks ADD COLUMN tags TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE cooks ADD COLUMN category TEXT NOT NULL DEFAULT ''")
             }
         }
         private const val PHOTOS_TABLE_SQL = "CREATE TABLE IF NOT EXISTS `photos` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `cookId` INTEGER NOT NULL, `time` INTEGER NOT NULL, `fileName` TEXT NOT NULL, `caption` TEXT NOT NULL, FOREIGN KEY(`cookId`) REFERENCES `cooks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"

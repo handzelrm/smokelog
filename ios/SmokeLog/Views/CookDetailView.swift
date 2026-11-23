@@ -145,6 +145,8 @@ struct CookDetailView: View {
     @ViewBuilder private func setupSection(_ c: Cook) -> some View {
         Section("Setup & prep") {
             KeyValueRow(label: "Meat", value: [c.meat, c.cut].filter { !$0.isEmpty }.joined(separator: " – ") + (c.weightLb.map { " · \(Fmt.num($0)) lb" } ?? ""))
+            KeyValueRow(label: "Category", value: c.effectiveCategory)
+            KeyValueRow(label: "Tags", value: c.tagList.joined(separator: ", "))
             KeyValueRow(label: "Smoker", value: [c.smoker, c.smokerTempF.map { "\($0)°F" } ?? ""].filter { !$0.isEmpty }.joined(separator: " @ "))
             KeyValueRow(label: "Pellets / wood", value: c.fuel)
             KeyValueRow(label: "Placement", value: [c.placement?.label ?? "", c.placementNotes].filter { !$0.isEmpty }.joined(separator: " – "))

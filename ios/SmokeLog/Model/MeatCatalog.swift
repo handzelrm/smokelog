@@ -62,6 +62,28 @@ enum MeatCatalog {
         return allMeats.first { $0.name.caseInsensitiveCompare(n) == .orderedSame }
     }
 
+    static let other = "Other"
+    static let uncategorized = "Uncategorized"
+    static let categoryNames: [String] = categories.map(\.name)
+
+    /// Hints for meats typed by hand ("Beef brisket", "Elk roast"); matched on whole words, first hit wins.
+    private static let keywords: [(String, Set<String>)] = [
+        ("Poultry", ["chicken", "turkey", "duck", "goose", "hen", "quail", "wing", "wings", "drumstick", "drumsticks", "poultry"]),
+        ("Seafood", ["salmon", "trout", "fish", "shrimp", "prawn", "prawns", "oyster", "oysters", "lobster", "crab", "tuna", "cod", "mackerel", "scallops", "seafood"]),
+        ("Lamb & game", ["lamb", "mutton", "goat", "venison", "deer", "elk", "bison", "boar", "rabbit", "moose", "antelope", "game"]),
+        ("Pork", ["pork", "ham", "bacon", "sausage", "sausages", "hog", "pig", "butt", "spareribs", "bratwurst", "brats"]),
+        ("Beef", ["beef", "brisket", "chuck", "steak", "ribeye", "tri-tip", "tritip", "picanha", "pastrami", "sirloin", "wagyu", "jerky"]),
+    ]
+
+    /// Category for a meat: from the catalog, else guessed from the words, else Other / Uncategorized.
+    static func category(for meat: String) -> String {
+        let name = meat.trimmingCharacters(in: .whitespaces).lowercased()
+        if name.isEmpty { return uncategorized }
+        if let c = categories.first(where: { $0.meats.contains { $0.name.lowercased() == name } }) { return c.name }
+        let words = Set(name.split { !($0.isASCII && $0.isLetter) && $0 != "-" }.map(String.init))
+        return keywords.first { !$0.1.isDisjoint(with: words) }?.0 ?? other
+    }
+
     static func describe() -> String {
         allMeats.map { m in "- \(m.name)" + (m.cuts.isEmpty ? "" : " (cuts: \(m.cuts.joined(separator: "; ")))") }
             .joined(separator: "\n")

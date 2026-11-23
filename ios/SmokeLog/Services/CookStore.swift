@@ -70,6 +70,18 @@ final class CookStore {
         }.prefix(3).map { $0 }
     }
 
+    /// Tags in use with how many cooks have them, most used first.
+    var tagCounts: [(name: String, count: Int)] {
+        Dictionary(grouping: cooks.flatMap(\.tagList)) { $0.lowercased() }
+            .map { (name: $0.value[0], count: $0.value.count) }
+            .sorted { $0.count != $1.count ? $0.count > $1.count : $0.name.lowercased() < $1.name.lowercased() }
+    }
+
+    var categoryCounts: [(name: String, count: Int)] {
+        Dictionary(grouping: cooks, by: \.effectiveCategory).map { (name: $0.key, count: $0.value.count) }
+            .sorted { CookQuery.categoryOrder($0.name) < CookQuery.categoryOrder($1.name) }
+    }
+
     func similarCooks(meat: String, excluding id: UUID) -> [Cook] {
         let m = meat.trimmingCharacters(in: .whitespaces)
         guard !m.isEmpty else { return [] }

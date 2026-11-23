@@ -54,6 +54,14 @@ extension View {
         #endif
     }
 
+    func compactSections() -> some View {
+        #if os(iOS)
+        listSectionSpacing(.compact)
+        #else
+        self
+        #endif
+    }
+
     func inlineTitle() -> some View {
         #if os(iOS)
         navigationBarTitleDisplayMode(.inline)

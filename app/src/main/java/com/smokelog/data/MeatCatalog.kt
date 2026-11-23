@@ -62,6 +62,28 @@ object MeatCatalog {
 
     fun find(name: String): Meat? = allMeats.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) }
 
+    const val OTHER = "Other"
+    const val UNCATEGORIZED = "Uncategorized"
+    val categoryNames: List<String> = categories.map { it.name }
+
+    /** Hints for meats typed by hand ("Beef brisket", "Elk roast"); matched on whole words, first hit wins. */
+    private val keywords: List<Pair<String, List<String>>> = listOf(
+        "Poultry" to listOf("chicken", "turkey", "duck", "goose", "hen", "quail", "wing", "wings", "drumstick", "drumsticks", "poultry"),
+        "Seafood" to listOf("salmon", "trout", "fish", "shrimp", "prawn", "prawns", "oyster", "oysters", "lobster", "crab", "tuna", "cod", "mackerel", "scallops", "seafood"),
+        "Lamb & game" to listOf("lamb", "mutton", "goat", "venison", "deer", "elk", "bison", "boar", "rabbit", "moose", "antelope", "game"),
+        "Pork" to listOf("pork", "ham", "bacon", "sausage", "sausages", "hog", "pig", "butt", "spareribs", "bratwurst", "brats"),
+        "Beef" to listOf("beef", "brisket", "chuck", "steak", "ribeye", "tri-tip", "tritip", "picanha", "pastrami", "sirloin", "wagyu", "jerky"),
+    )
+
+    /** Category for a meat: from the catalog, else guessed from the words, else Other / Uncategorized. */
+    fun categoryFor(meat: String): String {
+        val name = meat.trim()
+        if (name.isEmpty()) return UNCATEGORIZED
+        categories.firstOrNull { c -> c.meats.any { it.name.equals(name, ignoreCase = true) } }?.let { return it.name }
+        val words = name.lowercase().split(Regex("[^a-z-]+")).toSet()
+        return keywords.firstOrNull { (_, hints) -> hints.any { it in words } }?.first ?: OTHER
+    }
+
     /** Catalog text for the AI prompt. */
     fun describe(): String = allMeats.joinToString("\n") { m ->
         "- ${m.name}" + if (m.cuts.isNotEmpty()) " (cuts: ${m.cuts.joinToString("; ")})" else ""
