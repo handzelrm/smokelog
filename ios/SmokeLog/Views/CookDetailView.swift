@@ -32,7 +32,10 @@ struct CookDetailView: View {
                 if !past.isEmpty { Section { PastNotesCard(meat: c.meat, past: past).listRowInsets(EdgeInsets()) } }
                 grillSection(c)
                 milestoneSection(c)
-                Section("Temperatures") { TempChartView(cook: c) }
+                Section("Temperatures") {
+                    TempChartView(cook: c, forecast: c.offTime == nil
+                                  ? forecasts(c).first { $0.forecast.kind == .onTrack }.map { ($0.slot, $0.forecast) } : nil)
+                }
                 PhotosSection(cook: c)
                 setupSection(c)
                 if !c.events.isEmpty { timelineSection(c) }
@@ -96,14 +99,24 @@ struct CookDetailView: View {
                     }
                 }
                 if let m = recorder.message { Text(m).font(.caption).foregroundStyle(.secondary) }
+                if c.offTime == nil { ForecastView(forecasts: forecasts(c), meat: c.meat) }
                 Button("Stop recording", role: .destructive) { recorder.stop() }
             } else {
                 Text(recorder.isRecording ? "Another cook is recording. Stop it to record this one."
                      : "Connect to your Traeger to plot pit and probe temperatures automatically. Keep SmokeLog open while recording.")
                     .font(.subheadline).foregroundStyle(.secondary)
                 Button("Record from grill") { showGrills = true }.disabled(recorder.isRecording)
+                // Manual readings: forecast while the cook is going and readings are recent.
+                if c.offTime == nil, let last = c.readings.map(\.time).max(), Date().timeIntervalSince(last) < 30 * 60 {
+                    ForecastView(forecasts: forecasts(c), meat: c.meat)
+                }
             }
         } header: { Text("Grill") }
+    }
+
+    private func forecasts(_ c: Cook) -> [CookForecast.ProbeForecast] {
+        let live = recorder.cookId == c.id ? recorder.status?.probes.map { $0?.targetF } : nil
+        return CookForecast.forProbes(meat: c.meat, cut: c.cut, readings: c.readings, liveTargets: live)
     }
 
     private func bigStat(_ label: String, _ value: String, _ sub: String?) -> some View {

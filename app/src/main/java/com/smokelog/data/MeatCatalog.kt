@@ -88,4 +88,36 @@ object MeatCatalog {
     fun describe(): String = allMeats.joinToString("\n") { m ->
         "- ${m.name}" + if (m.cuts.isNotEmpty()) " (cuts: ${m.cuts.joinToString("; ")})" else ""
     }
+
+    /**
+     * Usual pull temperature (°F) for a meat, used for the finish-time forecast when the grill
+     * has no probe target. Null when there isn't a single sensible number (jerky, whole hog…).
+     */
+    fun typicalDoneF(meat: String, cut: String = ""): Double? {
+        val m = meat.trim().lowercase(); val c = cut.trim().lowercase()
+        return when (m) {
+            "brisket", "beef ribs", "chuck roast", "pastrami" -> 203.0
+            "beef cheeks" -> 205.0
+            "tri-tip", "picanha" -> 135.0
+            "prime rib / ribeye roast", "beef tenderloin" -> 130.0
+            "pork butt / shoulder" -> 203.0
+            "pork ribs" -> 198.0
+            "pork belly" -> if ("bacon" in c) 150.0 else 200.0
+            "pork loin", "pork tenderloin", "pork chops" -> 145.0
+            "ham" -> 140.0
+            "sausage" -> 160.0
+            "whole chicken", "chicken breast", "whole turkey", "turkey breast" -> 165.0
+            "chicken thighs", "chicken drumsticks", "chicken wings", "turkey legs" -> 175.0
+            "duck" -> if ("breast" in c) 135.0 else 165.0
+            "leg of lamb", "rack of lamb" -> 135.0
+            "lamb shoulder" -> 200.0
+            "venison" -> if ("backstrap" in c) 130.0 else null
+            "salmon", "trout", "other fish" -> 145.0
+            "meatloaf", "meatballs" -> 160.0
+            else -> when (categoryFor(m)) {
+                "Poultry" -> 165.0
+                else -> null
+            }
+        }
+    }
 }

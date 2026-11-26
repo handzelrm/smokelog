@@ -5,6 +5,8 @@ import SwiftUI
 /// touch crosshair. Colors are slots 1–3 of the validated default categorical palette.
 struct TempChartView: View {
     let cook: Cook
+    /// Probe slot and its forecast, drawn as a dashed projection to the goal.
+    var forecast: (slot: Int, forecast: CookForecast.Forecast)? = nil
     @Environment(\.colorScheme) private var scheme
     @State private var selectedHours: Double?
 
@@ -47,10 +49,28 @@ struct TempChartView: View {
         return out
     }
 
+    private var slotColors: [Color] { [probe, probe2, bt1, bt2] }
+
+    /// End of the projection: the finish, but never so far out that the cook so far gets squashed.
+    private var projectionEnd: Date? {
+        guard let f = forecast?.forecast, let done = f.doneAt, let last = readings.last?.time else { return nil }
+        let soFar = last.timeIntervalSince(t0)
+        return min(done, last + max(2 * 3600, soFar * 1.5))
+    }
+
+    private var projection: [Point] {
+        guard let f = forecast?.forecast, let end = projectionEnd else { return [] }
+        return (0...24).compactMap { i in
+            let t = f.from + end.timeIntervalSince(f.from) * Double(i) / 24
+            return f.project(at: t).map { Point(series: "Forecast", segment: 0, hours: hours(t), temp: $0) }
+        }
+    }
+
     var body: some View {
-        let pts = points
+        let proj = projection
+        let pts = points + proj
         let present = Set(pts.map(\.series))
-        let target = readings.last(where: { $0.probeTargetF != nil })?.probeTargetF
+        let target = readings.last(where: { $0.probeTargetF != nil })?.probeTargetF ?? forecast?.forecast.goalF
         if readings.count < 2 || present.subtracting(["Pit set"]).isEmpty {
             Text("No temperature data yet. Record from a Traeger, or add readings manually.")
                 .font(.subheadline).foregroundStyle(.secondary)
@@ -63,7 +83,17 @@ struct TempChartView: View {
                 ForEach(pts) { p in
                     LineMark(x: .value("Hours", p.hours), y: .value("°F", p.temp), series: .value("Series", "\(p.series)#\(p.segment)"))
                         .foregroundStyle(by: .value("Series", p.series))
-                        .lineStyle(p.series == "Pit set" ? StrokeStyle(lineWidth: 1.5, dash: [5, 5]) : StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                        .lineStyle(p.series == "Pit set" ? StrokeStyle(lineWidth: 1.5, dash: [5, 5])
+                                   : p.series == "Forecast" ? StrokeStyle(lineWidth: 2, lineCap: .round, dash: [3, 6])
+                                   : StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                }
+                if let f = forecast?.forecast, let done = f.doneAt, let end = projectionEnd, done <= end {
+                    PointMark(x: .value("Hours", hours(done)), y: .value("°F", f.goalF))
+                        .symbol(.circle).symbolSize(60)
+                        .foregroundStyle(slotColors[forecast!.slot])
+                        .annotation(position: .bottomLeading, spacing: 4) {
+                            Text(ForecastView.clock(done, Date())).font(.caption2.weight(.semibold))
+                        }
                 }
                 if let target {
                     RuleMark(y: .value("Target", target))
@@ -109,12 +139,14 @@ struct TempChartView: View {
     }
 
     private func legendNames(_ present: Set<String>, _ hasTarget: Bool) -> [String] {
-        Self.order.filter(present.contains) + (hasTarget ? ["Target"] : [])
+        Self.order.filter(present.contains) + (hasTarget ? ["Target"] : []) + (present.contains("Forecast") ? ["Forecast"] : [])
     }
     private func legendColors(_ present: Set<String>, _ hasTarget: Bool) -> [Color] {
         let all: [String: Color] = ["Pit": pit, Probes.labels[0]: probe, Probes.labels[1]: probe2,
                                     Probes.labels[2]: bt1, Probes.labels[3]: bt2, "Pit set": .secondary]
-        return Self.order.filter(present.contains).map { all[$0]! } + (hasTarget ? [probe.opacity(0.8)] : [])
+        let fc = forecast.map { slotColors[$0.slot] } ?? probe
+        return Self.order.filter(present.contains).map { all[$0]! } + (hasTarget ? [fc.opacity(0.8)] : [])
+            + (present.contains("Forecast") ? [fc] : [])
     }
 
     /// Total hours shown, used to pick axis label units.

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0791C6CBB94F335BDA0E4DB5 /* PhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C73A97E65F2A4BFA530FFE /* PhotoStore.swift */; };
 		261638A9C6CCEE89318B1500 /* CookShare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A5DABEAAF857D3EA4F7A1 /* CookShare.swift */; };
+		2D17A12ABDF2210F5C7D38A7 /* CookForecast.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA44F8F0B0BF683FE955BDAE /* CookForecast.swift */; };
 		3FA4412CE0F0514E8F0E60AC /* TempChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */; };
 		525F39DEECD86524F3CA1196 /* CookEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B01224DDA851B722019E086 /* CookEditView.swift */; };
 		5BEF6252723BDBB2F1D53233 /* PhotosSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AFBDE7E16DA44C79B6A7C7C /* PhotosSection.swift */; };
@@ -18,9 +19,11 @@
 		84C6A6541A2AE28AA6B68C01 /* CookQueryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064C6918FDB2BEC09B727801 /* CookQueryTests.swift */; };
 		867713A3F53493C6455C2B72 /* TraegerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED207492480FF1386AEB728 /* TraegerClient.swift */; };
 		8A3A2F41E0E39659173821D4 /* GrillStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84CE19CCF0240D9AAA37AB9A /* GrillStatusTests.swift */; };
+		8F22E383DD367373A1A682A2 /* ForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3451E00CC1549FE8627354EA /* ForecastView.swift */; };
 		9F21B479BEAE76432CA6D522 /* CookQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C576421B66AF412390C527 /* CookQuery.swift */; };
 		A2D13344EBE17BEA03F115CB /* AIAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4DB39E3CF585EC00020FD4 /* AIAssistant.swift */; };
 		A8C07F59195136652F37B84D /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */; };
+		AC704BFE82B05D6C77C3840C /* CookForecastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 407C96B8FAFC0FD3133B8EB0 /* CookForecastTests.swift */; };
 		B7470DC2EA4CE74C937E5914 /* SmokeLogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5ADD34FC6407FFD0F5A8A5 /* SmokeLogApp.swift */; };
 		BB55365130355FA7E350E956 /* CookStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9429436C87C86BF44D3A69 /* CookStore.swift */; };
 		C0C9668F7CE4B8D8B1216E4B /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABD75E877824FBFE075AE8F /* Platform.swift */; };
@@ -50,10 +53,12 @@
 		1ABD75E877824FBFE075AE8F /* Platform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform.swift; sourceTree = "<group>"; };
 		1ED207492480FF1386AEB728 /* TraegerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraegerClient.swift; sourceTree = "<group>"; };
 		26C576421B66AF412390C527 /* CookQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookQuery.swift; sourceTree = "<group>"; };
+		3451E00CC1549FE8627354EA /* ForecastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastView.swift; sourceTree = "<group>"; };
 		3796F1B87BFDAD0C4ED2FBCE /* TempChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempChartView.swift; sourceTree = "<group>"; };
 		3B01224DDA851B722019E086 /* CookEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookEditView.swift; sourceTree = "<group>"; };
 		3B4DB39E3CF585EC00020FD4 /* AIAssistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistant.swift; sourceTree = "<group>"; };
 		4025E38C84684FF7521CAB53 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		407C96B8FAFC0FD3133B8EB0 /* CookForecastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookForecastTests.swift; sourceTree = "<group>"; };
 		4F9429436C87C86BF44D3A69 /* CookStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookStore.swift; sourceTree = "<group>"; };
 		63DB0F516347BAFAC805591E /* SmokeLogTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SmokeLogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		69C36335D9405CA3F4DF9A5A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -65,6 +70,7 @@
 		A8CDD5761C0101419349E909 /* Organize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Organize.swift; sourceTree = "<group>"; };
 		AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recorder.swift; sourceTree = "<group>"; };
 		C90917037FE2EF22CAE8C205 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		CA44F8F0B0BF683FE955BDAE /* CookForecast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookForecast.swift; sourceTree = "<group>"; };
 		D0059112890755B52BEE7323 /* CookListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookListView.swift; sourceTree = "<group>"; };
 		D2ACA8740A7BFFD4E9889841 /* SmokeLog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SmokeLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD826EDCB8D77059FBFB5313 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -95,6 +101,7 @@
 		505C026E81ACB63ECD957FE4 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				CA44F8F0B0BF683FE955BDAE /* CookForecast.swift */,
 				26C576421B66AF412390C527 /* CookQuery.swift */,
 				FAEAFAD7A017B4AC5E760CE3 /* Fmt.swift */,
 				F4A39E9D41070F89D3D7AD41 /* MeatCatalog.swift */,
@@ -106,6 +113,7 @@
 		52C7C01E341E9AA04A1FC4CA /* SmokeLogTests */ = {
 			isa = PBXGroup;
 			children = (
+				407C96B8FAFC0FD3133B8EB0 /* CookForecastTests.swift */,
 				064C6918FDB2BEC09B727801 /* CookQueryTests.swift */,
 				84CE19CCF0240D9AAA37AB9A /* GrillStatusTests.swift */,
 			);
@@ -128,6 +136,7 @@
 				E4458A6BF9DDA7B5EF29B971 /* CookDetailView.swift */,
 				3B01224DDA851B722019E086 /* CookEditView.swift */,
 				D0059112890755B52BEE7323 /* CookListView.swift */,
+				3451E00CC1549FE8627354EA /* ForecastView.swift */,
 				A8CDD5761C0101419349E909 /* Organize.swift */,
 				0AFBDE7E16DA44C79B6A7C7C /* PhotosSection.swift */,
 				DD826EDCB8D77059FBFB5313 /* SettingsView.swift */,
@@ -269,11 +278,13 @@
 				D6A7326F1BE2DDBACDC51A66 /* Components.swift in Sources */,
 				D94848BC11E086BC8CC2F467 /* CookDetailView.swift in Sources */,
 				525F39DEECD86524F3CA1196 /* CookEditView.swift in Sources */,
+				2D17A12ABDF2210F5C7D38A7 /* CookForecast.swift in Sources */,
 				657ABD437C23B4A9F96BF766 /* CookListView.swift in Sources */,
 				9F21B479BEAE76432CA6D522 /* CookQuery.swift in Sources */,
 				261638A9C6CCEE89318B1500 /* CookShare.swift in Sources */,
 				BB55365130355FA7E350E956 /* CookStore.swift in Sources */,
 				718409C029CD0D83F04B44E5 /* Fmt.swift in Sources */,
+				8F22E383DD367373A1A682A2 /* ForecastView.swift in Sources */,
 				7AEC5508C1740D6E6950C8CA /* MeatCatalog.swift in Sources */,
 				D0505A80D04EE8818B415409 /* Models.swift in Sources */,
 				D332133BE0EF89D61C94927F /* Organize.swift in Sources */,
@@ -292,6 +303,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC704BFE82B05D6C77C3840C /* CookForecastTests.swift in Sources */,
 				84C6A6541A2AE28AA6B68C01 /* CookQueryTests.swift in Sources */,
 				8A3A2F41E0E39659173821D4 /* GrillStatusTests.swift in Sources */,
 			);

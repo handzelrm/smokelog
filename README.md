@@ -68,6 +68,15 @@ On the cook screen, the **Wrapped now**, **Taken off now** and **Rest done now**
 - **Demo grill (simulated)** runs a simulated brisket cook (one simulated minute per second), so you can try the chart without a grill.
 - Without a Traeger, use **Add reading…** to enter temperatures by hand.
 
+### Finish-time forecast
+
+While a cook is going, each probe with a goal shows how long it has left and when it should be done, for example "Probe: about 1h 40m to 203°F · done around 3:21 PM". The chart continues the probe's line as a dashed projection to the goal, and on Android the recording notification shows the finish time.
+
+- **Goal:** the target set for that probe on the grill. Without one, the first probe uses the usual pull temp for the meat (203°F for brisket, 165°F for turkey…), marked "typical".
+- **How it's worked out:** meat heats in proportion to how much hotter the pit is than the meat, so it slows as it nears the goal. The app takes the probe's rise over the last hour, divides by the average pit-minus-meat gap to get a heating rate for this piece of meat, and projects that curve against the pit's set temperature. Turning the grill up shortens the estimate right away.
+- **Stall:** if the probe sits flat between 140°F and 185°F for 20 minutes, it reports the stall and how long it'll take once the temperature climbs again, instead of an estimate that runs for days.
+- It needs 15 minutes of readings. With manual readings and no pit temperature, it projects the probe's recent rise in a straight line.
+
 > **Caveat:** Traeger has no official public API. `traeger/TraegerClient.kt` uses the same AWS Cognito, REST and IoT MQTT endpoints as the Traeger app and the community Home Assistant integration. Traeger could change these at any time. If the live feed breaks, `TraegerClient.kt` and `MqttWebSocket.kt` are the files to update. The live feed and Bluetooth probes were tested on a Timberline XL; two wired probes at once are covered by tests but not yet confirmed on a grill.
 
 ## Sharing

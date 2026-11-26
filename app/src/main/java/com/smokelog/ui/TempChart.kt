@@ -43,6 +43,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smokelog.data.Cook
+import com.smokelog.data.CookForecast
 import com.smokelog.data.Fmt
 import com.smokelog.data.Probes
 import com.smokelog.data.TempReading
@@ -65,7 +66,11 @@ private class Series(val name: String, val color: Color, val value: (TempReading
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TempChart(cook: Cook, readings: List<TempReading>, modifier: Modifier = Modifier) {
+fun TempChart(
+    cook: Cook, readings: List<TempReading>, modifier: Modifier = Modifier,
+    /** Probe slot and its forecast, drawn as a dashed projection to the goal. */
+    forecast: Pair<Int, CookForecast.Forecast>? = null,
+) {
     val c = chartColors()
     val all = listOf(
         Series("Pit", c.pit) { it.grillF },
@@ -76,7 +81,9 @@ fun TempChart(cook: Cook, readings: List<TempReading>, modifier: Modifier = Modi
     )
     val series = all.filter { s -> readings.any { s.value(it) != null } }
     val hasSet = readings.any { it.grillSetF != null }
-    val target = readings.lastOrNull { it.probeTargetF != null }?.probeTargetF
+    val target = readings.lastOrNull { it.probeTargetF != null }?.probeTargetF ?: forecast?.second?.goalF
+    val probeColors = listOf(c.probe, c.probe2, c.bt1, c.bt2)
+    val targetColor = forecast?.first?.let { probeColors[it] } ?: c.probe
 
     if (readings.size < 2 || series.isEmpty()) {
         Text(
@@ -87,8 +94,18 @@ fun TempChart(cook: Cook, readings: List<TempReading>, modifier: Modifier = Modi
     }
 
     val t0 = cook.startTime?.coerceAtMost(readings.first().time) ?: readings.first().time
-    val t1 = max(readings.last().time, cook.offTime ?: 0L).coerceAtLeast(t0 + 60_000)
-    val values = readings.flatMap { r -> series.mapNotNull { it.value(r) } + listOfNotNull(r.grillSetF) } + listOfNotNull(target)
+    val tLast = max(readings.last().time, cook.offTime ?: 0L).coerceAtLeast(t0 + 60_000)
+    // Room for the projection, but never so much that the cook so far gets squashed.
+    val projEnd = forecast?.second?.doneAt?.let { done -> minOf(done, tLast + max(2 * 3_600_000L, (tLast - t0) * 3 / 2)) }
+    val t1 = max(tLast, projEnd ?: 0L)
+    fun projection(): List<Pair<Long, Double>> {
+        val (_, f) = forecast ?: return emptyList()
+        val end = projEnd ?: return emptyList()
+        val n = 24
+        return (0..n).mapNotNull { i -> val t = f.fromTime + (end - f.fromTime) * i / n; f.projectAt(t)?.let { t to it } }
+    }
+    val proj = projection()
+    val values = readings.flatMap { r -> series.mapNotNull { it.value(r) } + listOfNotNull(r.grillSetF) } + listOfNotNull(target) + proj.map { it.second }
     val yMin = floor((values.min() - 10) / 25.0) * 25
     val yMax = ceil((values.max() + 10) / 25.0) * 25
 
@@ -101,7 +118,8 @@ fun TempChart(cook: Cook, readings: List<TempReading>, modifier: Modifier = Modi
         FlowRow(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             series.forEach { LegendItem(it.name, it.color, dashed = false) }
             if (hasSet) LegendItem("Pit set", c.muted, dashed = true)
-            if (target != null) LegendItem("Target", c.probe, dashed = true)
+            if (target != null) LegendItem("Target", targetColor, dashed = true)
+            if (proj.isNotEmpty()) LegendItem("Forecast", probeColors[forecast!!.first], dashed = true)
         }
         Canvas(
             modifier
@@ -160,11 +178,29 @@ fun TempChart(cook: Cook, readings: List<TempReading>, modifier: Modifier = Modi
             milestone(cook.offTime, "Off")
 
             if (target != null) {
-                drawLine(c.probe, Offset(left, y(target)), Offset(left + w, y(target)), 1.5f,
+                drawLine(targetColor, Offset(left, y(target)), Offset(left + w, y(target)), 1.5f,
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f)))
             }
             if (hasSet) drawSeries(readings, { it.grillSetF }, c.muted, ::x, ::y, dashed = true)
             series.forEach { s -> drawSeries(readings, s.value, s.color, ::x, ::y, dashed = false) }
+
+            // Forecast: dashed curve from the latest reading to the goal, with a ring at the finish.
+            if (proj.size > 1) {
+                val color = probeColors[forecast!!.first]
+                val path = Path().apply {
+                    moveTo(x(proj[0].first), y(proj[0].second))
+                    proj.drop(1).forEach { (t, v) -> lineTo(x(t), y(v)) }
+                }
+                drawPath(path, color, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 8f))))
+                val done = forecast.second.doneAt
+                if (done != null && done <= t1) {
+                    val p = Offset(x(done), y(forecast.second.goalF))
+                    drawCircle(c.surface, 7.dp.toPx(), p)
+                    drawCircle(color, 5.dp.toPx(), p, style = Stroke(2.dp.toPx()))
+                    val tl = measurer.measure(clock(done, System.currentTimeMillis()), labelStyle.copy(color = c.ink))
+                    drawText(tl, topLeft = Offset((p.x - tl.size.width - 8f).coerceAtLeast(left), p.y + 8f))
+                }
+            }
 
             // Crosshair + tooltip
             hoverX?.let { hx ->

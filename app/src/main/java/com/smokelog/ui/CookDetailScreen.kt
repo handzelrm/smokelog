@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.smokelog.data.Cook
 import com.smokelog.data.CookEvent
 import com.smokelog.data.EventType
+import com.smokelog.data.CookForecast
 import com.smokelog.data.Fmt
 import com.smokelog.data.Probes
 import com.smokelog.data.WrapMethod
@@ -112,6 +113,8 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
     ) { pad ->
         if (c == null) return@Scaffold
         val recordingThis = monitoringId == c.id
+        val liveTargets = if (recordingThis) live.status?.probes?.map { it?.targetF } else null
+        val forecasts = remember(readings, liveTargets, c.meat, c.cut) { CookForecast.forProbes(c.meat, c.cut, readings, liveTargets) }
         Column(
             Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -132,6 +135,7 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
                         }
                     }
                     live.message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    if (c.offTime == null) ForecastBlock(forecasts, c.meat)
                     OutlinedButton(onClick = vm::stopMonitoring) { Text("Stop recording") }
                 } else {
                     Text(
@@ -140,6 +144,9 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
                         style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Button(onClick = vm::loadGrills, enabled = monitoringId == null) { Text("Record from grill") }
+                    // Manual readings: forecast while the cook is still going and readings are recent.
+                    val fresh = readings.lastOrNull()?.let { System.currentTimeMillis() - it.time < 30 * 60_000 } == true
+                    if (c.offTime == null && fresh) ForecastBlock(forecasts, c.meat)
                 }
             }
 
@@ -164,7 +171,9 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
             }
 
             // ---- Chart
-            Section("Temperatures") { TempChart(c, readings) }
+            Section("Temperatures") {
+                TempChart(c, readings, forecast = forecasts.firstOrNull { it.forecast.kind == CookForecast.Kind.ON_TRACK }?.takeIf { c.offTime == null }?.let { it.slot to it.forecast })
+            }
 
             // ---- Photos
             PhotosSection(

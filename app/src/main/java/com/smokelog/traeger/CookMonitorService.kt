@@ -12,7 +12,10 @@ import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.smokelog.SmokeLogApp
+import com.smokelog.data.CookForecast
+import com.smokelog.data.Fmt
 import com.smokelog.data.Probes
+import com.smokelog.ui.clock
 import com.smokelog.data.TempReading
 import com.smokelog.ui.MainActivity
 import kotlinx.coroutines.Job
@@ -28,6 +31,7 @@ import kotlin.math.roundToInt
  */
 class CookMonitorService : LifecycleService() {
     private var job: Job? = null
+    private var eta: String? = null
     private val alertedTargets = arrayOfNulls<Double>(Probes.COUNT)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -50,6 +54,7 @@ class CookMonitorService : LifecycleService() {
         val app = application as SmokeLogApp
         job?.cancel()
         alertedTargets.fill(null)
+        eta = null
         app.monitoringCookId.value = cookId
         _live.value = LiveState(cookId, null, "Connecting…")
         val source = if (thing == TraegerClient.DEMO_THING) "demo" else "traeger"
@@ -75,6 +80,8 @@ class CookMonitorService : LifecycleService() {
                                     probeTargetF = s.probeTargetF, source = source,
                                 )
                             )
+                            eta = forecastLine(cookId, s)
+                            updateNotification(s)
                         }
                     }
                 }
@@ -132,11 +139,29 @@ class CookMonitorService : LifecycleService() {
         this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
     )
 
+    /** Finish-time forecast for the notification, from the readings saved so far. */
+    private suspend fun forecastLine(cookId: Long, s: GrillStatus): String? {
+        val dao = (application as SmokeLogApp).db.cookDao()
+        val cook = dao.getCook(cookId) ?: return null
+        if (cook.offTime != null) return null
+        val now = System.currentTimeMillis()
+        val all = CookForecast.forProbes(cook.meat, cook.cut, dao.getReadings(cookId), s.probes.map { it?.targetF })
+        val pf = all.firstOrNull { it.forecast.kind == CookForecast.Kind.ON_TRACK } ?: all.firstOrNull() ?: return null
+        val f = pf.forecast
+        return when (f.kind) {
+            CookForecast.Kind.ON_TRACK -> "${pf.label} done around ${clock(f.doneAt!!, now)} (${Fmt.duration(f.minutesLeft(now))} to ${Fmt.temp(f.goalF)})"
+            CookForecast.Kind.STALLED -> "${pf.label} in the stall at ${Fmt.temp(f.currentF)}"
+            CookForecast.Kind.DONE -> "${pf.label} reached ${Fmt.temp(f.goalF)}"
+            else -> null
+        }
+    }
+
     private fun notification(text: String): Notification =
         NotificationCompat.Builder(this, SmokeLogApp.CHANNEL_MONITOR)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
-            .setContentTitle("Recording cook")
+            .setContentTitle(eta ?: "Recording cook")
             .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(openApp())
