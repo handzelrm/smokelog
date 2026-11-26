@@ -272,7 +272,7 @@ class CookDetailViewModel(val cookId: Long) : ViewModel() {
     fun stopMonitoring() = CookMonitorService.stop(app)
 
     private suspend fun latestProbe(): Int? =
-        (live.value.takeIf { it.cookId == cookId }?.status?.probeF ?: dao.latestReading(cookId)?.probeF)?.roundToInt()
+        (live.value.takeIf { it.cookId == cookId }?.status?.probeF ?: dao.latestReading(cookId)?.mainProbeF)?.roundToInt()
 
     /** One-tap milestones: stamp the time and grab the current probe temp when we have one. */
     fun markNow(type: EventType) = viewModelScope.launch {

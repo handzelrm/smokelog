@@ -129,6 +129,7 @@ enum CookShare {
         var id: Int64? = 0, cookId: Int64? = 0
         var time: Int64
         var grillF, grillSetF, probeF, probe2F, probeTargetF: Double?
+        var probe3F, probe4F: Double?
         var source: String?
     }
 
@@ -159,7 +160,7 @@ enum CookShare {
             format: format, version: 1, cook: dto,
             readings: c.readings.sorted { $0.time < $1.time }.map {
                 ReadingDTO(time: ms($0.time)!, grillF: $0.grillF, grillSetF: $0.grillSetF, probeF: $0.probeF,
-                           probe2F: $0.probe2F, probeTargetF: $0.probeTargetF, source: $0.source)
+                           probe2F: $0.probe2F, probeTargetF: $0.probeTargetF, probe3F: $0.probe3F, probe4F: $0.probe4F, source: $0.source)
             },
             events: c.events.sorted { $0.time < $1.time }.map { EventDTO(time: ms($0.time)!, type: $0.type.rawValue, note: $0.note) },
             photos: c.photoList.compactMap { p in
@@ -205,7 +206,8 @@ enum CookShare {
         c.title = c.displayTitle + " (shared)"
         c.readings = f.readings.map {
             TempReading(time: date($0.time)!, grillF: $0.grillF, grillSetF: $0.grillSetF, probeF: $0.probeF,
-                        probe2F: $0.probe2F, probeTargetF: $0.probeTargetF, source: $0.source ?? "manual")
+                        probe2F: $0.probe2F, probeTargetF: $0.probeTargetF, source: $0.source ?? "manual",
+                        probe3F: $0.probe3F, probe4F: $0.probe4F)
         }
         c.events = f.events.map { CookEvent(time: date($0.time)!, type: EventType(rawValue: $0.type) ?? .note, note: $0.note ?? "") }
         c.photos = (f.photos ?? []).compactMap { p in

@@ -71,6 +71,19 @@ struct TempReading: Codable, Hashable, Identifiable {
     var probe2F: Double?
     var probeTargetF: Double?
     var source: String = "manual"
+    /// Bluetooth probes. Probe slots: wired 1, wired 2, Bluetooth 1, Bluetooth 2 (see Probes).
+    var probe3F: Double?
+    var probe4F: Double?
+
+    var probeSlots: [Double?] { [probeF, probe2F, probe3F, probe4F] }
+    /// The first probe that has a value, for "internal temp" and the like.
+    var mainProbeF: Double? { probeSlots.compactMap { $0 }.first }
+}
+
+/// Fixed probe slots, so each probe keeps its own line when others come and go.
+enum Probes {
+    static let labels = ["Probe", "Probe 2", "Bluetooth 1", "Bluetooth 2"]
+    static let count = 4
 }
 
 /// A picture attached to a cook; the JPEG lives in Application Support/photos/[fileName].

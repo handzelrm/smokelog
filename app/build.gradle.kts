@@ -14,8 +14,8 @@ android {
         applicationId = "com.smokelog"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.3.1"
     }
 
     buildTypes {
@@ -77,8 +77,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
-    // Traeger live data arrives over MQTT-over-WebSocket (AWS IoT)
-    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    // Traeger live data arrives over MQTT-over-WebSocket (AWS IoT), handled by
+    // traeger/MqttWebSocket.kt on top of OkHttp.
 
     testImplementation("junit:junit:4.13.2")
 

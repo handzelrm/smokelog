@@ -87,10 +87,13 @@ struct CookDetailView: View {
     @ViewBuilder private func grillSection(_ c: Cook) -> some View {
         Section {
             if recorder.cookId == c.id {
-                HStack(alignment: .top, spacing: 24) {
+                let probes = (recorder.status?.probes ?? []).enumerated().compactMap { i, p in p?.tempF == nil ? nil : (i, p!) }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), alignment: .topLeading)], alignment: .leading, spacing: 12) {
                     bigStat("Pit", Fmt.temp(recorder.status?.grillF), recorder.status?.setF.map { "set \(Fmt.temp($0))" })
-                    bigStat("Probe", Fmt.temp(recorder.status?.probeF), recorder.status?.probeTargetF.map { "target \(Fmt.temp($0))" })
-                    if let p2 = recorder.status?.probe2F { bigStat("Probe 2", Fmt.temp(p2), nil) }
+                    if probes.isEmpty { bigStat("Probe", Fmt.temp(nil as Double?), nil) }
+                    ForEach(probes, id: \.0) { i, p in
+                        bigStat(Probes.labels[i], Fmt.temp(p.tempF), p.targetF.map { "target \(Fmt.temp($0))" })
+                    }
                 }
                 if let m = recorder.message { Text(m).font(.caption).foregroundStyle(.secondary) }
                 Button("Stop recording", role: .destructive) { recorder.stop() }
@@ -185,7 +188,7 @@ struct CookDetailView: View {
     private func markNow(_ type: EventType) {
         let now = Date()
         let liveProbe = recorder.cookId == cookId ? recorder.status?.probeF : nil
-        let probe = (liveProbe ?? store.cook(cookId)?.readings.max { $0.time < $1.time }?.probeF).map { Int($0.rounded()) }
+        let probe = (liveProbe ?? store.cook(cookId)?.readings.max { $0.time < $1.time }?.mainProbeF).map { Int($0.rounded()) }
         store.update(cookId) { c in
             switch type {
             case .wrapped:

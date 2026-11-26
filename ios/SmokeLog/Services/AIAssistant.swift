@@ -189,9 +189,9 @@ final class AIAssistant {
             let t0 = c.startTime ?? first.time
             func v(_ d: Double?) -> String { d.map { String(format: "%.0f", $0) } ?? "" }
             let step = max(1, rs.count / 240)
-            s += "\n<temperature_log minutes_since_start,pit_F,pit_set_F,probe_F,probe2_F>\n"
+            s += "\n<temperature_log minutes_since_start,pit_F,pit_set_F,probe_F,probe2_F,bluetooth1_F,bluetooth2_F>\n"
             for (i, r) in rs.enumerated() where i % step == 0 || i == rs.count - 1 {
-                s += "\(Int(r.time.timeIntervalSince(t0) / 60)),\(v(r.grillF)),\(v(r.grillSetF)),\(v(r.probeF)),\(v(r.probe2F))\n"
+                s += "\(Int(r.time.timeIntervalSince(t0) / 60)),\(v(r.grillF)),\(v(r.grillSetF)),\(v(r.probeF)),\(v(r.probe2F)),\(v(r.probe3F)),\(v(r.probe4F))\n"
             }
             s += "</temperature_log>\n"
         }

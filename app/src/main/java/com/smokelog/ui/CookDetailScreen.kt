@@ -57,6 +57,7 @@ import com.smokelog.data.Cook
 import com.smokelog.data.CookEvent
 import com.smokelog.data.EventType
 import com.smokelog.data.Fmt
+import com.smokelog.data.Probes
 import com.smokelog.data.WrapMethod
 import com.smokelog.share.CookShare
 import com.smokelog.traeger.CookMonitorService
@@ -122,10 +123,13 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
             Section("Grill") {
                 if (recordingThis) {
                     val s = live.status
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         BigStat("Pit", Fmt.temp(s?.grillF), s?.setF?.let { "set ${Fmt.temp(it)}" })
-                        BigStat("Probe", Fmt.temp(s?.probeF), s?.probeTargetF?.let { "target ${Fmt.temp(it)}" })
-                        s?.probe2F?.let { BigStat("Probe 2", Fmt.temp(it), null) }
+                        val shown = s?.probes.orEmpty().withIndex().filter { it.value?.tempF != null }
+                        if (shown.isEmpty()) BigStat("Probe", Fmt.temp(null), null)
+                        shown.forEach { (i, p) ->
+                            BigStat(Probes.labels[i], Fmt.temp(p!!.tempF), p.targetF?.let { "target ${Fmt.temp(it)}" })
+                        }
                     }
                     live.message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     OutlinedButton(onClick = vm::stopMonitoring) { Text("Stop recording") }

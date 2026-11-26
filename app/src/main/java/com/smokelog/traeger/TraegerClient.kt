@@ -1,5 +1,6 @@
 package com.smokelog.traeger
 
+import com.smokelog.data.Probes
 import com.smokelog.data.Settings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
@@ -29,12 +31,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient
-import org.eclipse.paho.client.mqttv3.MqttCallback
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions
-import org.eclipse.paho.client.mqttv3.MqttMessage
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
+import android.util.Log
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.math.exp
@@ -43,15 +40,22 @@ import kotlin.random.Random
 
 data class Grill(val thingName: String, val name: String)
 
+/** A probe's reading and the target set for it on the grill (null = no target). */
+data class ProbeTemp(val tempF: Double?, val targetF: Double?)
+
 data class GrillStatus(
     val time: Long,
     val grillF: Double?,
     val setF: Double?,
-    val probeF: Double?,
-    val probeTargetF: Double?,
-    val probe2F: Double?,
+    /** Always [Probes.COUNT] slots: wired 1, wired 2, Bluetooth 1, Bluetooth 2; null = not connected. */
+    val probes: List<ProbeTemp?>,
     val connected: Boolean,
-)
+) {
+    private val main: ProbeTemp? get() = probes.firstOrNull { it?.tempF != null }
+    /** The first connected probe. */
+    val probeF: Double? get() = main?.tempF
+    val probeTargetF: Double? get() = main?.targetF
+}
 
 sealed interface GrillUpdate {
     data class Status(val status: GrillStatus) : GrillUpdate
@@ -74,6 +78,8 @@ class TraegerException(message: String) : Exception(message)
  */
 class TraegerClient(private val settings: Settings) {
     private val http = OkHttpClient.Builder().callTimeout(30, TimeUnit.SECONDS).build()
+    /** For the long-lived live feed: no overall call timeout. */
+    private val wsHttp = http.newBuilder().callTimeout(0, TimeUnit.SECONDS).readTimeout(0, TimeUnit.SECONDS).build()
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     private var idToken: String? = null
@@ -159,74 +165,65 @@ class TraegerClient(private val settings: Settings) {
      */
     fun updates(thing: String): Flow<GrillUpdate> =
         if (thing == DEMO_THING) demoUpdates() else channelFlow {
+            var lastMessageAt = 0L
             while (isActive) {
-                var client: MqttAsyncClient? = null
+                var client: MqttWebSocket? = null
                 try {
                     val (url, expSec) = signedMqttUrl()
+                    Log.d(TAG, "signed MQTT url for ${url.substringBefore('?')} (expires in ${expSec}s)")
                     val lost = CompletableDeferred<Throwable?>()
-                    val c = MqttAsyncClient(url, "smokelog-${UUID.randomUUID()}", MemoryPersistence())
+                    val c = MqttWebSocket(
+                        wsHttp,
+                        onMessage = { topic, payload ->
+                            lastMessageAt = System.currentTimeMillis()
+                            val text = payload.decodeToString()
+                            Log.d(TAG, "message on $topic (${text.length} chars): ${text.take(1500)}")
+                            val st = parseStatus(text)
+                            if (st == null) {
+                                Log.w(TAG, "could not read grill status from message")
+                                trySend(GrillUpdate.Problem("Got a message from the grill but couldn't read temperatures from it"))
+                            }
+                            st?.let { trySend(GrillUpdate.Status(it)) }
+                        },
+                        onClosed = { lost.complete(it) },
+                    )
                     client = c
-                    c.setCallback(object : MqttCallback {
-                        override fun connectionLost(cause: Throwable?) { lost.complete(cause) }
-                        override fun deliveryComplete(token: IMqttDeliveryToken?) {}
-                        override fun messageArrived(topic: String?, message: MqttMessage) {
-                            parseStatus(message.payload.decodeToString())?.let { trySend(GrillUpdate.Status(it)) }
-                        }
-                    })
-                    val opts = MqttConnectOptions().apply {
-                        isCleanSession = true
-                        keepAliveInterval = 30
-                        connectionTimeout = 20
-                        mqttVersion = MqttConnectOptions.MQTT_VERSION_3_1_1
-                        isAutomaticReconnect = false
-                    }
-                    withContext(Dispatchers.IO) {
-                        c.connect(opts).waitForCompletion(30_000)
-                        c.subscribe("prod/thing/update/$thing", 1).waitForCompletion(30_000)
-                    }
+                    c.connect(url, "smokelog-${UUID.randomUUID()}", keepAliveSec = 60)
+                    Log.d(TAG, "MQTT connected")
+                    c.subscribe("prod/thing/update/$thing", 1)
+                    Log.d(TAG, "subscribed to prod/thing/update/$thing")
+                    val pinger = launch { while (isActive) { delay(30_000); runCatching { c.ping() } } }
                     requestStateUpdate(thing)
+                    Log.d(TAG, "asked grill for its state")
+                    send(GrillUpdate.Problem("Connected – waiting for the grill to send temperatures…"))
                     val refreshMs = max(60L, expSec - 120) * 1000
-                    val cause = withTimeoutOrNull(refreshMs) { lost.await() }
+                    // The grill only publishes when something changes, so keep asking while it's quiet.
+                    val poller = launch {
+                        while (isActive) {
+                            delay(POLL_MS)
+                            if (System.currentTimeMillis() - lastMessageAt >= POLL_MS) {
+                                runCatching { requestStateUpdate(thing) }
+                                    .onSuccess { Log.d(TAG, "no message for a while; asked again") }
+                                    .onFailure { Log.w(TAG, "state request failed", it) }
+                                if (lastMessageAt == 0L) send(GrillUpdate.Problem("Connected, but the grill hasn't sent anything yet. Is it on and online in the Traeger app?"))
+                            }
+                        }
+                    }
+                    val cause = try { withTimeoutOrNull(refreshMs) { lost.await() } } finally { poller.cancel(); pinger.cancel() }
                     if (cause != null) send(GrillUpdate.Problem("Connection lost: ${cause.message ?: "unknown"} – reconnecting"))
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
+                    Log.w(TAG, "grill feed error", e)
                     send(GrillUpdate.Problem(e.message ?: e.javaClass.simpleName))
                     delay(if (e is TraegerException && e.message?.contains("sign-in") == true) 120_000 else 15_000)
                 } finally {
-                    client?.let { c -> runCatching { if (c.isConnected) c.disconnectForcibly(1000); c.close() } }
+                    client?.let { c -> runCatching { c.close() } }
                 }
             }
         }
 
-    /** Parses a `prod/thing/update/...` payload. Exposed for tests. */
-    fun parseStatus(payload: String): GrillStatus? = runCatching {
-        val root = json.parseToJsonElement(payload).jsonObject
-        val st = root["status"]?.jsonObject ?: return null
-        fun num(o: JsonObject?, k: String) = (o?.get(k) as? JsonPrimitive)?.doubleOrNull
-        val celsius = (st["units"] as? JsonPrimitive)?.intOrNull == 0
-        fun f(v: Double?) = v?.let { if (celsius) it * 9 / 5 + 32 else it }
-
-        val probeConnected = (st["probe_con"] as? JsonPrimitive)?.intOrNull?.let { it == 1 } ?: true
-        // Grills with multiple probes report them as accessories.
-        val accProbes = (st["acc"] as? JsonArray)?.mapNotNull { el ->
-            val a = el.jsonObject
-            if (a["type"]?.jsonPrimitive?.content != "probe") return@mapNotNull null
-            if ((a["con"] as? JsonPrimitive)?.intOrNull == 0) return@mapNotNull null
-            val p = a["probe"]?.jsonObject
-            num(p, "get_temp") to num(p, "set_temp")
-        }.orEmpty()
-
-        GrillStatus(
-            time = System.currentTimeMillis(),
-            grillF = f(num(st, "grill")),
-            setF = f(num(st, "set")),
-            probeF = f(if (probeConnected) num(st, "probe") else accProbes.firstOrNull()?.first),
-            probeTargetF = f(num(st, "probe_set")?.takeIf { it > 0 } ?: accProbes.firstOrNull()?.second),
-            probe2F = f(if (probeConnected) accProbes.firstOrNull()?.first else accProbes.getOrNull(1)?.first),
-            connected = (st["connected"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull() ?: true,
-        )
-    }.getOrNull()
+    fun parseStatus(payload: String): GrillStatus? = Companion.parseStatus(payload)
 
     /** Simulated brisket: 225°F pit, probe climbs, stalls ~160°F, finishes ~203°F. One sim-minute per second. */
     private fun demoUpdates(): Flow<GrillUpdate> = flow {
@@ -236,7 +233,8 @@ class TraegerClient(private val settings: Settings) {
             val stall = exp(-((probe - 162) * (probe - 162)) / 60.0)          // slows near 162
             probe += (225 - probe) * 0.006 * (1 - 0.92 * stall)
             val pit = 225 + 6 * kotlin.math.sin(minute / 9.0) + Random.nextDouble(-2.0, 2.0)
-            emit(GrillUpdate.Status(GrillStatus(System.currentTimeMillis(), pit, 225.0, probe, 203.0, probe - 4, true)))
+            emit(GrillUpdate.Status(GrillStatus(System.currentTimeMillis(), pit, 225.0,
+                listOf(ProbeTemp(probe, 203.0), ProbeTemp(probe - 4, null), ProbeTemp(probe + 3, 203.0), null), true)))
             minute++
             delay(1000)
         }
@@ -244,6 +242,41 @@ class TraegerClient(private val settings: Settings) {
 
     companion object {
         const val DEMO_THING = "demo"
+        private const val TAG = "SmokeLogTraeger"
+        private const val POLL_MS = 60_000L
+        private val parser = Json { ignoreUnknownKeys = true; isLenient = true }
+
+        /** Parses a `prod/thing/update/...` payload. */
+        fun parseStatus(payload: String): GrillStatus? = runCatching {
+            val root = parser.parseToJsonElement(payload).jsonObject
+            val st = root["status"]?.jsonObject ?: return null
+            fun num(o: JsonObject?, k: String) = (o?.get(k) as? JsonPrimitive)?.let { it.doubleOrNull ?: it.content.toDoubleOrNull() }
+            val celsius = (st["units"] as? JsonPrimitive)?.let { it.intOrNull ?: it.content.toIntOrNull() } == 0
+            fun f(v: Double?) = v?.let { if (celsius) it * 9 / 5 + 32 else it }
+
+            // Wired probes: the grill's own port, then any wired accessory probes. Some grills
+        // also list the built-in port as an accessory, so skip an exact copy of it.
+        // Bluetooth probes come as "btprobe" accessories. An empty wired port reports 0.
+        fun acc(type: String) = (st["acc"] as? JsonArray).orEmpty()
+            .mapNotNull { it as? JsonObject }
+            .filter { (it["type"] as? JsonPrimitive)?.content == type && (it["con"] as? JsonPrimitive)?.intOrNull != 0 }
+            .sortedBy { (it["channel"] as? JsonPrimitive)?.content.orEmpty() }
+            .map { a -> (a[type] as? JsonObject ?: a["probe"] as? JsonObject).let { p -> ProbeTemp(f(num(p, "get_temp")), f(num(p, "set_temp")?.takeIf { it > 0 })) } }
+        val wiredCon = (st["probe_con"] as? JsonPrimitive)?.intOrNull?.let { it == 1 } ?: true
+        val port = num(st, "probe")?.takeIf { wiredCon && it != 0.0 }
+            ?.let { ProbeTemp(f(it), f(num(st, "probe_set")?.takeIf { t -> t > 0 })) }
+        val wiredAcc = acc("probe").filter { it != port }
+        val wired = listOfNotNull(port) + wiredAcc
+        val bt = acc("btprobe")
+
+        GrillStatus(
+            time = System.currentTimeMillis(),
+            grillF = f(num(st, "grill")),
+            setF = f(num(st, "set")),
+            probes = listOf(wired.getOrNull(0), wired.getOrNull(1), bt.getOrNull(0), bt.getOrNull(1)),
+            connected = (st["connected"] as? JsonPrimitive)?.let { it.content.toBooleanStrictOrNull() ?: (it.intOrNull?.let { n -> n != 0 }) } ?: true,
+            )
+        }.getOrNull()
         private const val COGNITO_URL = "https://cognito-idp.us-west-2.amazonaws.com/"
         private const val COGNITO_CLIENT_ID = "4id473dsrcq4kevlgrikukqn2a"
         private const val API_BASE = "https://mobile-iot-api.iot.traegergrills.io"

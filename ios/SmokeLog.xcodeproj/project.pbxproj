@@ -17,6 +17,7 @@
 		7AEC5508C1740D6E6950C8CA /* MeatCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A39E9D41070F89D3D7AD41 /* MeatCatalog.swift */; };
 		84C6A6541A2AE28AA6B68C01 /* CookQueryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064C6918FDB2BEC09B727801 /* CookQueryTests.swift */; };
 		867713A3F53493C6455C2B72 /* TraegerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED207492480FF1386AEB728 /* TraegerClient.swift */; };
+		8A3A2F41E0E39659173821D4 /* GrillStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84CE19CCF0240D9AAA37AB9A /* GrillStatusTests.swift */; };
 		9F21B479BEAE76432CA6D522 /* CookQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C576421B66AF412390C527 /* CookQuery.swift */; };
 		A2D13344EBE17BEA03F115CB /* AIAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4DB39E3CF585EC00020FD4 /* AIAssistant.swift */; };
 		A8C07F59195136652F37B84D /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */; };
@@ -60,6 +61,7 @@
 		731A5DABEAAF857D3EA4F7A1 /* CookShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookShare.swift; sourceTree = "<group>"; };
 		7556E4251C32D29410029381 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7A5ADD34FC6407FFD0F5A8A5 /* SmokeLogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeLogApp.swift; sourceTree = "<group>"; };
+		84CE19CCF0240D9AAA37AB9A /* GrillStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrillStatusTests.swift; sourceTree = "<group>"; };
 		A8CDD5761C0101419349E909 /* Organize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Organize.swift; sourceTree = "<group>"; };
 		AF1A60882E4FE35FD8DA2F22 /* Recorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recorder.swift; sourceTree = "<group>"; };
 		C90917037FE2EF22CAE8C205 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
@@ -105,6 +107,7 @@
 			isa = PBXGroup;
 			children = (
 				064C6918FDB2BEC09B727801 /* CookQueryTests.swift */,
+				84CE19CCF0240D9AAA37AB9A /* GrillStatusTests.swift */,
 			);
 			path = SmokeLogTests;
 			sourceTree = "<group>";
@@ -290,6 +293,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				84C6A6541A2AE28AA6B68C01 /* CookQueryTests.swift in Sources */,
+				8A3A2F41E0E39659173821D4 /* GrillStatusTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

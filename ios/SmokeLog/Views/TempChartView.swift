@@ -23,9 +23,13 @@ struct TempChartView: View {
     private var pit: Color { scheme == .dark ? Color(hex: 0x3987E5) : Color(hex: 0x2A78D6) }
     private var probe: Color { scheme == .dark ? Color(hex: 0xD95926) : Color(hex: 0xEB6834) }
     private var probe2: Color { scheme == .dark ? Color(hex: 0x199E70) : Color(hex: 0x1BAF7A) }
+    private var bt1: Color { scheme == .dark ? Color(hex: 0xC98500) : Color(hex: 0xEDA100) }
+    private var bt2: Color { scheme == .dark ? Color(hex: 0xD55181) : Color(hex: 0xE87BA4) }
+    private static let order = ["Pit"] + Probes.labels + ["Pit set"]
 
     private var seriesDefs: [(name: String, value: (TempReading) -> Double?)] {
-        [("Pit", { $0.grillF }), ("Probe", { $0.probeF }), ("Probe 2", { $0.probe2F }), ("Pit set", { $0.grillSetF })]
+        [("Pit", { $0.grillF }), (Probes.labels[0], { $0.probeF }), (Probes.labels[1], { $0.probe2F }),
+         (Probes.labels[2], { $0.probe3F }), (Probes.labels[3], { $0.probe4F }), ("Pit set", { $0.grillSetF })]
     }
 
     /// Splits each series into segments at missing data or gaps over 15 minutes.
@@ -105,11 +109,12 @@ struct TempChartView: View {
     }
 
     private func legendNames(_ present: Set<String>, _ hasTarget: Bool) -> [String] {
-        ["Pit", "Probe", "Probe 2", "Pit set"].filter(present.contains) + (hasTarget ? ["Target"] : [])
+        Self.order.filter(present.contains) + (hasTarget ? ["Target"] : [])
     }
     private func legendColors(_ present: Set<String>, _ hasTarget: Bool) -> [Color] {
-        let all: [String: Color] = ["Pit": pit, "Probe": probe, "Probe 2": probe2, "Pit set": .secondary]
-        return ["Pit", "Probe", "Probe 2", "Pit set"].filter(present.contains).map { all[$0]! } + (hasTarget ? [probe.opacity(0.8)] : [])
+        let all: [String: Color] = ["Pit": pit, Probes.labels[0]: probe, Probes.labels[1]: probe2,
+                                    Probes.labels[2]: bt1, Probes.labels[3]: bt2, "Pit set": .secondary]
+        return Self.order.filter(present.contains).map { all[$0]! } + (hasTarget ? [probe.opacity(0.8)] : [])
     }
 
     /// Total hours shown, used to pick axis label units.
@@ -130,8 +135,9 @@ struct TempChartView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(Fmt.time(r.time)) · \(Fmt.duration(Int(r.time.timeIntervalSince(t0) / 60)))").font(.caption.weight(.semibold))
             if let v = r.grillF { Text("Pit  \(Fmt.temp(v))").font(.caption) }
-            if let v = r.probeF { Text("Probe  \(Fmt.temp(v))").font(.caption) }
-            if let v = r.probe2F { Text("Probe 2  \(Fmt.temp(v))").font(.caption) }
+            ForEach(Array(r.probeSlots.enumerated()), id: \.offset) { i, v in
+                if let v { Text("\(Probes.labels[i])  \(Fmt.temp(v))").font(.caption) }
+            }
             if let v = r.grillSetF { Text("Pit set  \(Fmt.temp(v))").font(.caption) }
         }
         .padding(8)

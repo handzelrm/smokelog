@@ -194,10 +194,10 @@ class AiAssistant(private val settings: Settings) {
             appendLine("</cook>")
             if (readings.isNotEmpty()) {
                 appendLine()
-                appendLine("<temperature_log minutes_since_start,pit_F,pit_set_F,probe_F,probe2_F>")
+                appendLine("<temperature_log minutes_since_start,pit_F,pit_set_F,probe_F,probe2_F,bluetooth1_F,bluetooth2_F>")
                 val t0 = cook.startTime ?: readings.first().time
                 downsample(readings, 240).forEach { r ->
-                    appendLine(listOf(((r.time - t0) / 60_000).toString(), r.grillF.c(), r.grillSetF.c(), r.probeF.c(), r.probe2F.c()).joinToString(","))
+                    appendLine(listOf(((r.time - t0) / 60_000).toString(), r.grillF.c(), r.grillSetF.c(), r.probeF.c(), r.probe2F.c(), r.probe3F.c(), r.probe4F.c()).joinToString(","))
                 }
                 appendLine("</temperature_log>")
             }

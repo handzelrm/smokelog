@@ -2,14 +2,21 @@ import Foundation
 
 struct Grill: Identifiable, Hashable { let thingName: String; let name: String; var id: String { thingName } }
 
+/// A probe's reading and the target set for it on the grill (nil = no target).
+struct ProbeTemp: Equatable { var tempF: Double?; var targetF: Double? }
+
 struct GrillStatus: Equatable {
     var time: Date
     var grillF: Double?
     var setF: Double?
-    var probeF: Double?
-    var probeTargetF: Double?
-    var probe2F: Double?
+    /// Always Probes.count slots: wired 1, wired 2, Bluetooth 1, Bluetooth 2; nil = not connected.
+    var probes: [ProbeTemp?]
     var connected: Bool
+
+    private var main: ProbeTemp? { probes.compactMap { $0 }.first { $0.tempF != nil } }
+    /// The first connected probe.
+    var probeF: Double? { main?.tempF }
+    var probeTargetF: Double? { main?.targetF }
 }
 
 enum GrillUpdate {
@@ -141,21 +148,32 @@ final class TraegerClient {
         func num(_ o: [String: Any]?, _ k: String) -> Double? { (o?[k] as? NSNumber)?.doubleValue }
         let celsius = (st["units"] as? NSNumber)?.intValue == 0
         func f(_ v: Double?) -> Double? { v.map { celsius ? $0 * 9 / 5 + 32 : $0 } }
-        let probeConnected = (st["probe_con"] as? NSNumber).map { $0.intValue == 1 } ?? true
-        let acc: [(Double?, Double?)] = (st["acc"] as? [[String: Any]] ?? []).compactMap { a in
-            guard a["type"] as? String == "probe", (a["con"] as? NSNumber)?.intValue != 0 else { return nil }
-            let p = a["probe"] as? [String: Any]
-            return (num(p, "get_temp"), num(p, "set_temp"))
+        // Wired probes: the grill's own port, then any wired accessory probes. Some grills
+        // also list the built-in port as an accessory, so skip an exact copy of it.
+        // Bluetooth probes come as "btprobe" accessories. An empty wired port reports 0.
+        func acc(_ type: String) -> [ProbeTemp] {
+            (st["acc"] as? [[String: Any]] ?? [])
+                .filter { $0["type"] as? String == type && ($0["con"] as? NSNumber)?.intValue != 0 }
+                .sorted { ($0["channel"] as? String ?? "") < ($1["channel"] as? String ?? "") }
+                .map { a in
+                    let p = (a[type] ?? a["probe"]) as? [String: Any]
+                    return ProbeTemp(tempF: f(num(p, "get_temp")), targetF: f(num(p, "set_temp").flatMap { $0 > 0 ? $0 : nil }))
+                }
         }
-        let probeSet = num(st, "probe_set").flatMap { $0 > 0 ? $0 : nil } ?? acc.first?.1
+        let wiredCon = (st["probe_con"] as? NSNumber).map { $0.intValue == 1 } ?? true
+        var port: ProbeTemp?
+        if wiredCon, let w = num(st, "probe"), w != 0 {
+            port = ProbeTemp(tempF: f(w), targetF: f(num(st, "probe_set").flatMap { $0 > 0 ? $0 : nil }))
+        }
+        let wired = (port.map { [$0] } ?? []) + acc("probe").filter { $0 != port }
+        let bt = acc("btprobe")
+        func at(_ a: [ProbeTemp], _ i: Int) -> ProbeTemp? { i < a.count ? a[i] : nil }
         return GrillStatus(
             time: Date(),
             grillF: f(num(st, "grill")),
             setF: f(num(st, "set")),
-            probeF: f(probeConnected ? num(st, "probe") : acc.first?.0),
-            probeTargetF: f(probeSet),
-            probe2F: f(probeConnected ? acc.first?.0 : (acc.count > 1 ? acc[1].0 : nil)),
-            connected: (st["connected"] as? Bool) ?? true
+            probes: [at(wired, 0), at(wired, 1), at(bt, 0), at(bt, 1)],
+            connected: (st["connected"] as? Bool) ?? (st["connected"] as? NSNumber).map { $0.intValue != 0 } ?? true
         )
     }
 
@@ -168,8 +186,9 @@ final class TraegerClient {
                     let stall = exp(-((probe - 162) * (probe - 162)) / 60)
                     probe += (225 - probe) * 0.006 * (1 - 0.92 * stall)
                     let pit = 225 + 6 * sin(minute / 9) + Double.random(in: -2...2)
-                    cont.yield(.status(GrillStatus(time: Date(), grillF: pit, setF: 225, probeF: probe,
-                                                   probeTargetF: 203, probe2F: probe - 4, connected: true)))
+                    cont.yield(.status(GrillStatus(time: Date(), grillF: pit, setF: 225,
+                                                   probes: [ProbeTemp(tempF: probe, targetF: 203), ProbeTemp(tempF: probe - 4, targetF: nil),
+                                                           ProbeTemp(tempF: probe + 3, targetF: 203), nil], connected: true)))
                     minute += 1
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
                 }

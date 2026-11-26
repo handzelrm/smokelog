@@ -19,7 +19,7 @@ An app for logging smoked-meat cooks, for Android and iPhone (see [`ios/`](ios/R
 
 1. On your Android phone, open this repo's [**Releases**](../../releases/latest) page and download `SmokeLog.apk`.
 2. Open the downloaded file. If Android asks, allow your browser (or Files app) to **install unknown apps**, then tap **Install**.
-3. Open **SmokeLog** and allow notifications. They show recording status during a cook and alert you when the probe reaches its target.
+3. Open **SmokeLog** and allow notifications. They show recording status during a cook and alert you when a probe reaches its target.
 4. Optional setup in **Settings** (gear icon):
    - **Traeger account:** enter your Traeger app email and password, then tap **Test connection**. Your grills should be listed.
    - **AI assistant:** keep **Claude app on this phone** (install [Claude](https://play.google.com/store/apps/details?id=com.anthropic.claude) from the Play Store), or switch to **API key** and enter an Anthropic API key.
@@ -62,12 +62,13 @@ On the cook screen, the **Wrapped now**, **Taken off now** and **Rest done now**
 ## Traeger integration
 
 - In **Settings**, enter your Traeger app (WiFIRE) email and password, then tap **Test connection**.
-- On a cook, tap **Record from grill** and pick a grill. A foreground service subscribes to the grill's live MQTT feed and saves pit, set, probe and extra-probe temps every 60 s (you can change the interval). It keeps running when the phone is locked, and a notification fires when the probe reaches its target.
-- The chart shows pit, probe, pit-set and probe-target lines on one °F axis, with markers for the wrap and off times. Touch and drag on the chart to see the values at any point.
+- On a cook, tap **Record from grill** and pick a grill. A foreground service subscribes to the grill's live MQTT feed and saves pit, set and probe temps every 60 s (you can change the interval). It keeps running when the phone is locked. If the grill goes quiet, the app asks it for an update every minute, and the line under the live numbers says what the connection is doing.
+- **Up to four probes at once:** two wired (**Probe**, **Probe 2**) and two Bluetooth (**Bluetooth 1**, **Bluetooth 2**). Each probe has its own live tile and chart line, and its own notification when it reaches the target set on the grill.
+- The chart shows pit, each probe, pit-set and probe-target lines on one °F axis, with markers for the wrap and off times. Touch and drag on the chart to see the values at any point.
 - **Demo grill (simulated)** runs a simulated brisket cook (one simulated minute per second), so you can try the chart without a grill.
 - Without a Traeger, use **Add reading…** to enter temperatures by hand.
 
-> **Caveat:** Traeger has no official public API. `traeger/TraegerClient.kt` uses the same AWS Cognito, REST and IoT MQTT endpoints as the Traeger app and the community Home Assistant integration. Traeger could change these at any time. If the live feed breaks, that file is the only one to update.
+> **Caveat:** Traeger has no official public API. `traeger/TraegerClient.kt` uses the same AWS Cognito, REST and IoT MQTT endpoints as the Traeger app and the community Home Assistant integration. Traeger could change these at any time. If the live feed breaks, `TraegerClient.kt` and `MqttWebSocket.kt` are the files to update. The live feed and Bluetooth probes were tested on a Timberline XL; two wired probes at once are covered by tests but not yet confirmed on a grill.
 
 ## Sharing
 

@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smokelog.data.Cook
 import com.smokelog.data.Fmt
+import com.smokelog.data.Probes
 import com.smokelog.data.TempReading
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -51,14 +52,14 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-/** Categorical slots 1–3 of the validated default palette, light / dark steps. */
-private data class ChartColors(val pit: Color, val probe: Color, val probe2: Color, val ink: Color, val muted: Color, val grid: Color, val surface: Color)
+/** Categorical slots 1–5 of the validated default palette, light / dark steps. */
+private data class ChartColors(val pit: Color, val probe: Color, val probe2: Color, val bt1: Color, val bt2: Color, val ink: Color, val muted: Color, val grid: Color, val surface: Color)
 
 @Composable
 private fun chartColors(): ChartColors = if (isSystemInDarkTheme())
-    ChartColors(Color(0xFF3987E5), Color(0xFFD95926), Color(0xFF199E70), Color(0xFFF0EFEC), Color(0xFFC3C2B7), Color(0x33F0EFEC), Color(0xFF1A1A19))
+    ChartColors(Color(0xFF3987E5), Color(0xFFD95926), Color(0xFF199E70), Color(0xFFC98500), Color(0xFFD55181), Color(0xFFF0EFEC), Color(0xFFC3C2B7), Color(0x33F0EFEC), Color(0xFF1A1A19))
 else
-    ChartColors(Color(0xFF2A78D6), Color(0xFFEB6834), Color(0xFF1BAF7A), Color(0xFF0B0B0B), Color(0xFF52514E), Color(0x1F0B0B0B), Color(0xFFFCFCFB))
+    ChartColors(Color(0xFF2A78D6), Color(0xFFEB6834), Color(0xFF1BAF7A), Color(0xFFEDA100), Color(0xFFE87BA4), Color(0xFF0B0B0B), Color(0xFF52514E), Color(0x1F0B0B0B), Color(0xFFFCFCFB))
 
 private class Series(val name: String, val color: Color, val value: (TempReading) -> Double?)
 
@@ -68,8 +69,10 @@ fun TempChart(cook: Cook, readings: List<TempReading>, modifier: Modifier = Modi
     val c = chartColors()
     val all = listOf(
         Series("Pit", c.pit) { it.grillF },
-        Series("Probe", c.probe) { it.probeF },
-        Series("Probe 2", c.probe2) { it.probe2F },
+        Series(Probes.labels[0], c.probe) { it.probeF },
+        Series(Probes.labels[1], c.probe2) { it.probe2F },
+        Series(Probes.labels[2], c.bt1) { it.probe3F },
+        Series(Probes.labels[3], c.bt2) { it.probe4F },
     )
     val series = all.filter { s -> readings.any { s.value(it) != null } }
     val hasSet = readings.any { it.grillSetF != null }

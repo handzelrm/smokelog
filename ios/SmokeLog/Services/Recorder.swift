@@ -14,7 +14,7 @@ final class Recorder {
     private(set) var message: String?
 
     @ObservationIgnored private var task: Task<Void, Never>?
-    @ObservationIgnored private var targetAlerted = false
+    @ObservationIgnored private var alertedTargets = [Double?](repeating: nil, count: Probes.count)
 
     var isRecording: Bool { cookId != nil }
 
@@ -23,7 +23,7 @@ final class Recorder {
         self.cookId = cookId
         status = nil
         message = "Connecting…"
-        targetAlerted = false
+        alertedTargets = [Double?](repeating: nil, count: Probes.count)
         Platform.keepScreenAwake(true)
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
 
@@ -41,8 +41,9 @@ final class Recorder {
                     self.message = s.connected ? nil : "Grill reports offline"
                     if s.time.timeIntervalSince(lastWrite) >= interval {
                         lastWrite = s.time
-                        store.addReading(TempReading(time: s.time, grillF: s.grillF, grillSetF: s.setF, probeF: s.probeF,
-                                                     probe2F: s.probe2F, probeTargetF: s.probeTargetF, source: source), to: cookId)
+                        store.addReading(TempReading(time: s.time, grillF: s.grillF, grillSetF: s.setF, probeF: s.probes[0]?.tempF,
+                                                     probe2F: s.probes[1]?.tempF, probeTargetF: s.probeTargetF, source: source,
+                                                     probe3F: s.probes[2]?.tempF, probe4F: s.probes[3]?.tempF), to: cookId)
                     }
                     self.checkTarget(s)
                 }
@@ -59,13 +60,17 @@ final class Recorder {
         Platform.keepScreenAwake(false)
     }
 
+    /// One alert per probe; re-arms if that probe's target is changed.
     private func checkTarget(_ s: GrillStatus) {
-        guard !targetAlerted, let p = s.probeF, let t = s.probeTargetF, p >= t else { return }
-        targetAlerted = true
-        let content = UNMutableNotificationContent()
-        content.title = "Probe target reached"
-        content.body = "Probe at \(Fmt.temp(p)) (target \(Fmt.temp(t))). Time to check for probe-tender."
-        content.sound = .default
-        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "target", content: content, trigger: nil))
+        for (i, probe) in s.probes.enumerated() {
+            guard let p = probe?.tempF, let t = probe?.targetF, p >= t, alertedTargets[i] != t else { continue }
+            alertedTargets[i] = t
+            let name = Probes.labels[i]
+            let content = UNMutableNotificationContent()
+            content.title = "\(name) reached its target"
+            content.body = "\(name) at \(Fmt.temp(p)) (target \(Fmt.temp(t))). Time to check for probe-tender."
+            content.sound = .default
+            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "target-\(i)", content: content, trigger: nil))
+        }
     }
 }

@@ -12,6 +12,7 @@ import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.smokelog.SmokeLogApp
+import com.smokelog.data.Probes
 import com.smokelog.data.TempReading
 import com.smokelog.ui.MainActivity
 import kotlinx.coroutines.Job
@@ -27,7 +28,7 @@ import kotlin.math.roundToInt
  */
 class CookMonitorService : LifecycleService() {
     private var job: Job? = null
-    private var targetAlerted = false
+    private val alertedTargets = arrayOfNulls<Double>(Probes.COUNT)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -48,7 +49,7 @@ class CookMonitorService : LifecycleService() {
     private fun start(cookId: Long, thing: String) {
         val app = application as SmokeLogApp
         job?.cancel()
-        targetAlerted = false
+        alertedTargets.fill(null)
         app.monitoringCookId.value = cookId
         _live.value = LiveState(cookId, null, "Connecting…")
         val source = if (thing == TraegerClient.DEMO_THING) "demo" else "traeger"
@@ -69,7 +70,9 @@ class CookMonitorService : LifecycleService() {
                             app.db.cookDao().insertReading(
                                 TempReading(
                                     cookId = cookId, time = s.time, grillF = s.grillF, grillSetF = s.setF,
-                                    probeF = s.probeF, probe2F = s.probe2F, probeTargetF = s.probeTargetF, source = source,
+                                    probeF = s.probes[0]?.tempF, probe2F = s.probes[1]?.tempF,
+                                    probe3F = s.probes[2]?.tempF, probe4F = s.probes[3]?.tempF,
+                                    probeTargetF = s.probeTargetF, source = source,
                                 )
                             )
                         }
@@ -98,19 +101,25 @@ class CookMonitorService : LifecycleService() {
         val text = buildString {
             append("Pit ${s.grillF.f()}")
             s.setF?.let { append(" (set ${it.f()})") }
-            append(" · Probe ${s.probeF.f()}")
-            s.probeTargetF?.let { append(" → ${it.f()}") }
+            s.probes.forEachIndexed { i, p ->
+                if (p?.tempF == null) return@forEachIndexed
+                append(" · ${Probes.labels[i]} ${p.tempF.f()}")
+                p.targetF?.let { append(" → ${it.f()}") }
+            }
         }
         nm.notify(NOTIF_ID, notification(text))
-        val probe = s.probeF; val target = s.probeTargetF
-        if (!targetAlerted && probe != null && target != null && probe >= target) {
-            targetAlerted = true
+        // One alert per probe; re-arms if that probe's target is changed.
+        s.probes.forEachIndexed { i, p ->
+            val probe = p?.tempF; val target = p?.targetF
+            if (probe == null || target == null) return@forEachIndexed
+            if (alertedTargets[i] == target || probe < target) return@forEachIndexed
+            alertedTargets[i] = target
             nm.notify(
-                NOTIF_ID + 1,
+                NOTIF_ID + 1 + i,
                 NotificationCompat.Builder(this, SmokeLogApp.CHANNEL_MONITOR)
                     .setSmallIcon(android.R.drawable.stat_notify_more)
-                    .setContentTitle("Probe target reached")
-                    .setContentText("Probe at ${probe.f()} (target ${target.f()}). Time to check for probe-tender.")
+                    .setContentTitle("${Probes.labels[i]} reached its target")
+                    .setContentText("${Probes.labels[i]} at ${probe.f()} (target ${target.f()}). Time to check for probe-tender.")
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setContentIntent(openApp())
                     .setAutoCancel(true)

@@ -124,11 +124,24 @@ data class TempReading(
     val time: Long,
     val grillF: Double? = null,
     val grillSetF: Double? = null,
+    /** Probe slots: wired 1, wired 2, Bluetooth 1, Bluetooth 2 (see [Probes]). */
     val probeF: Double? = null,
     val probe2F: Double? = null,
     val probeTargetF: Double? = null,
     val source: String = "manual",   // manual | traeger | demo
-)
+    val probe3F: Double? = null,
+    val probe4F: Double? = null,
+) {
+    val probeSlots: List<Double?> get() = listOf(probeF, probe2F, probe3F, probe4F)
+    /** The first probe that has a value, for "internal temp" and the like. */
+    val mainProbeF: Double? get() = probeSlots.firstOrNull { it != null }
+}
+
+/** Fixed probe slots, so each probe keeps its own line when others come and go. */
+object Probes {
+    val labels = listOf("Probe", "Probe 2", "Bluetooth 1", "Bluetooth 2")
+    const val COUNT = 4
+}
 
 @Serializable
 @Entity(
