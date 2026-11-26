@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -116,7 +118,8 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
         val liveTargets = if (recordingThis) live.status?.probes?.map { it?.targetF } else null
         val forecasts = remember(readings, liveTargets, c.meat, c.cut) { CookForecast.forProbes(c.meat, c.cut, readings, liveTargets) }
         Column(
-            Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()).padding(16.dp),
+            // Shrink above the keyboard so the focused field (e.g. the AI pitmaster question) scrolls into view.
+            Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad).imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             LaunchedEffect(c.meat) { vm.loadPastNotes(c.meat) }
