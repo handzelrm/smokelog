@@ -33,6 +33,8 @@ class CookMonitorService : LifecycleService() {
     private var job: Job? = null
     private var eta: String? = null
     private val alertedTargets = arrayOfNulls<Double>(Probes.COUNT)
+    /** When the meat came off the smoker; after this only probe temps are recorded. */
+    @Volatile private var offTime: Long? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -55,6 +57,7 @@ class CookMonitorService : LifecycleService() {
         job?.cancel()
         alertedTargets.fill(null)
         eta = null
+        offTime = null
         app.monitoringCookId.value = cookId
         _live.value = LiveState(cookId, null, "Connecting…")
         val source = if (thing == TraegerClient.DEMO_THING) "demo" else "traeger"
@@ -63,6 +66,7 @@ class CookMonitorService : LifecycleService() {
         var lastWrite = 0L
 
         job = lifecycleScope.launch {
+            launch { app.db.cookDao().observeCook(cookId).collect { offTime = it?.offTime } }
             app.traeger.updates(thing).collect { u ->
                 when (u) {
                     is GrillUpdate.Problem -> { _live.value = _live.value.copy(message = u.message) }
@@ -70,11 +74,15 @@ class CookMonitorService : LifecycleService() {
                         val s = u.status
                         _live.value = LiveState(cookId, s, if (s.connected) null else "Grill reports offline")
                         updateNotification(s)
-                        if (s.time - lastWrite >= intervalMs) {
+                        // Off the smoker: keep logging the probes (carryover / rest), drop the pit.
+                        val off = offTime?.let { s.time >= it } == true
+                        val anyProbe = s.probes.any { it?.tempF != null }
+                        if (s.time - lastWrite >= intervalMs && (!off || anyProbe)) {
                             lastWrite = s.time
                             app.db.cookDao().insertReading(
                                 TempReading(
-                                    cookId = cookId, time = s.time, grillF = s.grillF, grillSetF = s.setF,
+                                    cookId = cookId, time = s.time,
+                                    grillF = s.grillF.takeUnless { off }, grillSetF = s.setF.takeUnless { off },
                                     probeF = s.probes[0]?.tempF, probe2F = s.probes[1]?.tempF,
                                     probe3F = s.probes[2]?.tempF, probe4F = s.probes[3]?.tempF,
                                     probeTargetF = s.probeTargetF, source = source,
@@ -105,16 +113,15 @@ class CookMonitorService : LifecycleService() {
 
     private fun updateNotification(s: GrillStatus) {
         val nm = getSystemService(NotificationManager::class.java)
-        val text = buildString {
-            append("Pit ${s.grillF.f()}")
-            s.setF?.let { append(" (set ${it.f()})") }
-            s.probes.forEachIndexed { i, p ->
-                if (p?.tempF == null) return@forEachIndexed
-                append(" · ${Probes.labels[i]} ${p.tempF.f()}")
-                p.targetF?.let { append(" → ${it.f()}") }
-            }
+        val off = offTime?.let { s.time >= it } == true
+        val parts = mutableListOf<String>()
+        if (!off) parts += "Pit ${s.grillF.f()}" + (s.setF?.let { " (set ${it.f()})" } ?: "")
+        s.probes.forEachIndexed { i, p ->
+            if (p?.tempF == null) return@forEachIndexed
+            parts += "${Probes.labels[i]} ${p.tempF.f()}" + (p.targetF?.let { " → ${it.f()}" } ?: "")
         }
-        nm.notify(NOTIF_ID, notification(text))
+        val text = parts.joinToString(" · ").ifEmpty { "No probes reporting" }
+        nm.notify(NOTIF_ID, notification(text, if (off) "Off the smoker – recording probe temps" else null))
         // One alert per probe; re-arms if that probe's target is changed.
         s.probes.forEachIndexed { i, p ->
             val probe = p?.tempF; val target = p?.targetF
@@ -156,10 +163,10 @@ class CookMonitorService : LifecycleService() {
         }
     }
 
-    private fun notification(text: String): Notification =
+    private fun notification(text: String, title: String? = null): Notification =
         NotificationCompat.Builder(this, SmokeLogApp.CHANNEL_MONITOR)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
-            .setContentTitle(eta ?: "Recording cook")
+            .setContentTitle(title ?: eta ?: "Recording cook")
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setOngoing(true)

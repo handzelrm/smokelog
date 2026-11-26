@@ -287,7 +287,8 @@ class CookDetailViewModel(val cookId: Long) : ViewModel() {
             else -> c
         }
         if (updated != c) dao.updateCook(updated)
-        if (type == EventType.PULLED && monitoringId.value == cookId) stopMonitoring()
+        // Recording keeps going after "Taken off" (probe temps only) and stops when the rest is done.
+        if (type == EventType.REST_END && monitoringId.value == cookId) stopMonitoring()
         dao.insertEvent(CookEvent(cookId = cookId, time = now, type = type, note = probe?.let { "Probe ${it}°F" } ?: ""))
     }
 

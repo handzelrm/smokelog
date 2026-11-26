@@ -92,11 +92,15 @@ struct CookDetailView: View {
             if recorder.cookId == c.id {
                 let probes = (recorder.status?.probes ?? []).enumerated().compactMap { i, p in p?.tempF == nil ? nil : (i, p!) }
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), alignment: .topLeading)], alignment: .leading, spacing: 12) {
-                    bigStat("Pit", Fmt.temp(recorder.status?.grillF), recorder.status?.setF.map { "set \(Fmt.temp($0))" })
+                    if c.offTime == nil { bigStat("Pit", Fmt.temp(recorder.status?.grillF), recorder.status?.setF.map { "set \(Fmt.temp($0))" }) }
                     if probes.isEmpty { bigStat("Probe", Fmt.temp(nil as Double?), nil) }
                     ForEach(probes, id: \.0) { i, p in
                         bigStat(Probes.labels[i], Fmt.temp(p.tempF), p.targetF.map { "target \(Fmt.temp($0))" })
                     }
+                }
+                if c.offTime != nil {
+                    Text("Off the smoker – still recording the probes so you can watch carryover and the rest. Recording stops when you tap Rest done.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
                 if let m = recorder.message { Text(m).font(.caption).foregroundStyle(.secondary) }
                 if c.offTime == nil { ForecastView(forecasts: forecasts(c), meat: c.meat) }
@@ -217,7 +221,8 @@ struct CookDetailView: View {
             }
             c.events.append(CookEvent(time: now, type: type, note: probe.map { "Probe \($0)°F" } ?? ""))
         }
-        if type == .pulled, recorder.cookId == cookId { recorder.stop() }
+        // Recording keeps going after "Taken off" (probe temps only) and stops when the rest is done.
+        if type == .restEnd, recorder.cookId == cookId { recorder.stop() }
     }
 
     private func addEvent(_ type: EventType, _ note: String) {

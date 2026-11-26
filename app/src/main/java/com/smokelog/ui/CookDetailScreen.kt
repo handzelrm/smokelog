@@ -129,14 +129,19 @@ fun CookDetailScreen(vm: CookDetailViewModel, onBack: () -> Unit, onEdit: () -> 
             Section("Grill") {
                 if (recordingThis) {
                     val s = live.status
+                    val off = c.offTime != null
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        BigStat("Pit", Fmt.temp(s?.grillF), s?.setF?.let { "set ${Fmt.temp(it)}" })
+                        if (!off) BigStat("Pit", Fmt.temp(s?.grillF), s?.setF?.let { "set ${Fmt.temp(it)}" })
                         val shown = s?.probes.orEmpty().withIndex().filter { it.value?.tempF != null }
                         if (shown.isEmpty()) BigStat("Probe", Fmt.temp(null), null)
                         shown.forEach { (i, p) ->
                             BigStat(Probes.labels[i], Fmt.temp(p!!.tempF), p.targetF?.let { "target ${Fmt.temp(it)}" })
                         }
                     }
+                    if (off) Text(
+                        "Off the smoker – still recording the probes so you can watch carryover and the rest. Recording stops when you tap Rest done.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     live.message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     if (c.offTime == null) ForecastBlock(forecasts, c.meat)
                     OutlinedButton(onClick = vm::stopMonitoring) { Text("Stop recording") }

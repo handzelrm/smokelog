@@ -49,7 +49,7 @@ adb install -r SmokeLog.apk
 | Photos | take pictures with the camera or add up to 10 from the photo library; captions; full-screen viewer; included when sharing |
 | Notes for next cook | free text; shown at the top of your next cook of the same meat (up to the 3 most recent) |
 
-On the cook screen, the **Wrapped now**, **Taken off now** and **Rest done now** buttons record the current time and the current probe temp.
+On the cook screen, the **Wrapped now**, **Taken off now** and **Rest done now** buttons record the current time and the current probe temp. While recording from the grill, **Taken off now** doesn't stop the recording: the probes keep logging so you can watch carryover and the rest (the pit line stops there), and **Rest done now** ends the recording.
 
 ## Organizing and search
 

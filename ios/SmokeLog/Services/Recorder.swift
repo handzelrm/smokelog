@@ -39,9 +39,12 @@ final class Recorder {
                 case .status(let s):
                     self.status = s
                     self.message = s.connected ? nil : "Grill reports offline"
-                    if s.time.timeIntervalSince(lastWrite) >= interval {
+                    // Off the smoker: keep logging the probes (carryover / rest), drop the pit.
+                    let off = store.cook(cookId)?.offTime.map { s.time >= $0 } ?? false
+                    let anyProbe = s.probes.contains { $0?.tempF != nil }
+                    if s.time.timeIntervalSince(lastWrite) >= interval && (!off || anyProbe) {
                         lastWrite = s.time
-                        store.addReading(TempReading(time: s.time, grillF: s.grillF, grillSetF: s.setF, probeF: s.probes[0]?.tempF,
+                        store.addReading(TempReading(time: s.time, grillF: off ? nil : s.grillF, grillSetF: off ? nil : s.setF, probeF: s.probes[0]?.tempF,
                                                      probe2F: s.probes[1]?.tempF, probeTargetF: s.probeTargetF, source: source,
                                                      probe3F: s.probes[2]?.tempF, probe4F: s.probes[3]?.tempF), to: cookId)
                     }
